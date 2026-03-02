@@ -139,6 +139,7 @@ const AssociateQuotes = () => {
 
     const encrypt = (id) => {
         const secret =
+            import.meta.env.VITE_QUOTE_LINK_SECRET ||
             "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
 
         return CryptoJS.AES.encrypt(String(id), secret).toString();
