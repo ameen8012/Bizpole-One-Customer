@@ -5,19 +5,19 @@ import { setSecureItem, getSecureItem } from "../utils/secureStorage";
 const getUserData = () => {
   try {
     const userStr = getSecureItem("user" || "partnerUser");
-    
+
     // If userStr is already an object, return it directly
     if (typeof userStr === 'object' && userStr !== null) {
       return userStr;
     }
-    
+
     // If it's a string, try to parse it
     if (typeof userStr === 'string') {
       // Clean the string if it contains :NULL
       const cleanStr = userStr.replace(/:NULL/g, ':null');
       return JSON.parse(cleanStr);
     }
-    
+
     // Return empty object if nothing works
     return {};
   } catch (error) {
@@ -34,9 +34,9 @@ const getUserData = () => {
 const uploadDocument = async (type, file) => {
   const userObj = getUserData();
   const customerId = userObj.CustomerID;
-  
+
   if (!customerId) throw new Error('Customer ID not found');
-  
+
   const formData = new FormData();
   formData.append("customerId", customerId);
 
@@ -61,12 +61,12 @@ const uploadDocument = async (type, file) => {
 /**
  * Get all documents (Base64) for the current customer
  */
-const getAllDocuments = async () => {
+const getUploadedDocuments = async () => {
   const userObj = getUserData();
   const customerId = userObj.CustomerID;
-  
+
   if (!customerId) throw new Error('Customer ID not found');
-  
+
   try {
     const response = await axiosInstance.get(`/customer-documents/${customerId}`);
     // If API returns {success: false, message: 'Documents not found'}, treat as no docs
@@ -74,7 +74,7 @@ const getAllDocuments = async () => {
       return {};
     }
     console.log('API Response:', response.data);
-    
+
     return response.data;
   } catch (error) {
     // If error response is 'Documents not found', treat as no docs
@@ -86,15 +86,78 @@ const getAllDocuments = async () => {
   }
 };
 
+
+// _______________________________________
+
+const postAllDocuments = async (filesObj) => {
+  if (!filesObj) {
+    console.error("postAllDocuments received:", filesObj);
+    console.trace();
+    return {};
+  }
+
+  const userObj = getUserData();
+  const customerId = userObj?.CustomerID;
+
+  console.log("CustomerID being sent:", customerId);
+
+  if (!customerId) throw new Error('Customer ID not found');
+
+  try {
+    const formData = new FormData();
+
+    const fieldMap = {
+      PAN: "pan",
+      ADHAAR: "aadhaar",
+      PassportPhoto: "passportphoto"
+    };
+
+    for (const [type, file] of Object.entries(filesObj)) {
+      if (file) {
+        const backendField = fieldMap[type]; 
+        if (!backendField) {
+          console.warn("Unknown file type:", type);
+          continue;
+        }
+        console.log("Appending:", backendField);
+        formData.append(backendField, file);
+      }
+    }
+
+    formData.append('customerId', customerId);
+
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    const response = await axiosInstance.post(
+      '/customer/upload-documents',
+      formData
+    );
+
+    return response.data;
+  } catch (error) {
+    console.error('Error uploading documents:', error);
+    throw error;
+  }
+};
+
+
+// const getUploadedDocuments = async (customerId) => {
+//   return axiosInstance.get(`/customer/documents/${customerId}`);
+// };
+
+// _______________________________________
+
 /**
  * Get individual document (URL to view or download) for the current customer
  */
 const getDocumentUrl = (docType, download = false) => {
   const userObj = getUserData();
   const customerId = userObj.CustomerID;
-  
+
   if (!customerId) throw new Error('Customer ID not found');
-  
+
   let url = `/customer-documents/${customerId}/${docType}`;
   if (download) url += "?download=1";
   return url;
@@ -102,6 +165,8 @@ const getDocumentUrl = (docType, download = false) => {
 
 export default {
   uploadDocument,
-  getAllDocuments,
+  // getAllDocuments,
+  getUploadedDocuments,
+  postAllDocuments,
   getDocumentUrl,
 };

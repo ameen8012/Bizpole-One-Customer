@@ -5,23 +5,23 @@ import axiosInstance from '../api/axiosInstance';
 import { setSecureItem, getSecureItem } from "../utils/secureStorage";
 
 const fileTypes = [
-  { 
-    key: 'PAN', 
-    label: 'PAN Card', 
+  {
+    key: 'PAN',
+    label: 'PAN Card',
     icon: '📄',
     description: 'Upload a clear image of your PAN card',
     acceptedFormats: 'PNG, JPG up to 10MB'
   },
-  { 
-    key: 'ADHAAR', 
-    label: 'Aadhaar Card', 
+  {
+    key: 'ADHAAR',
+    label: 'Aadhaar Card',
     icon: '🆔',
     description: 'Upload a clear image of your Aadhaar card',
     acceptedFormats: 'PNG, JPG up to 10MB'
   },
-  { 
-    key: 'PassportPhoto', 
-    label: 'Passport Photo', 
+  {
+    key: 'PassportPhoto',
+    label: 'Passport Photo',
     icon: '📷',
     description: 'Upload passport size Photo',
     acceptedFormats: 'JPG, PNG (Max 2MB)'
@@ -54,19 +54,19 @@ const CustomerFiles = () => {
   const getUserData = () => {
     try {
       const userStr = getSecureItem("user");
-      
+
       // If userStr is already an object, return it directly
       if (typeof userStr === 'object' && userStr !== null) {
         return userStr;
       }
-      
+
       // If it's a string, try to parse it
       if (typeof userStr === 'string') {
         // Clean the string if it contains :NULL
         const cleanStr = userStr.replace(/:NULL/g, ':null');
         return JSON.parse(cleanStr);
       }
-      
+
       // Return empty object if nothing works
       return {};
     } catch (error) {
@@ -103,46 +103,79 @@ const CustomerFiles = () => {
   };
 
   // Check which documents are already uploaded
+  // useEffect(() => {
+  //   const checkUploadedDocuments = async () => {
+  //     try {
+  //       setLoadingDocs(true);
+  //       const documents = await CustomerDocApi.getUploadedDocuments(customerId);
+  //       console.log('Fetched documents:', documents); // Debug log
+
+  //       // Check which documents exist in the response and store Base64 data
+  //       const uploadedState = {
+  //         PAN: !!documents.PAN,
+  //         ADHAAR: !!documents.ADHAAR,
+  //         PassportPhoto: !!documents.PassportPhoto
+  //       };
+
+  //       const uploadedData = {
+  //         PAN: documents.pan ? base64ToDataUrl(documents.pan) : '',
+  //         ADHAAR: documents.aadhaar ? base64ToDataUrl(documents.aadhaar) : '',
+  //         PassportPhoto: documents.passportphoto ? base64ToDataUrl(documents.passportphoto) : ''
+  //       };
+
+  //       setUploadedDocs(uploadedState);
+  //       setUploadedDocData(uploadedData);
+  //     } catch (error) {
+  //       console.error('Error checking uploaded documents:', error);
+  //       // If error, assume no documents are uploaded
+  //       setUploadedDocs({ PAN: false, ADHAAR: false, PassportPhoto: false });
+  //       setUploadedDocData({ PAN: '', ADHAAR: '', PassportPhoto: '' });
+  //     } finally {
+  //       setLoadingDocs(false);
+  //     }
+  //   };
+
+  //   checkUploadedDocuments();
+  // }, []);
+
   useEffect(() => {
-    const checkUploadedDocuments = async () => {
-      try {
-        setLoadingDocs(true);
-        const documents = await CustomerDocApi.getAllDocuments();
-        
-        console.log('Fetched documents:', documents); // Debug log
-        
-        // Check which documents exist in the response and store Base64 data
-        const uploadedState = {
-          PAN: !!documents.PAN,
-          ADHAAR: !!documents.ADHAAR,
-          PassportPhoto: !!documents.PassportPhoto
-        };
+  const checkUploadedDocuments = async () => {
+    try {
+      setLoadingDocs(true);
+      const documents = await CustomerDocApi.getUploadedDocuments(customerId);
+      console.log('Fetched documents:', documents);
 
-        const uploadedData = {
-          PAN: documents.PAN ? base64ToDataUrl(documents.PAN) : '',
-          ADHAAR: documents.ADHAAR ? base64ToDataUrl(documents.ADHAAR) : '',
-          PassportPhoto: documents.PassportPhoto ? base64ToDataUrl(documents.PassportPhoto) : ''
-        };
-        
-        setUploadedDocs(uploadedState);
-        setUploadedDocData(uploadedData);
-      } catch (error) {
-        console.error('Error checking uploaded documents:', error);
-        // If error, assume no documents are uploaded
-        setUploadedDocs({ PAN: false, ADHAAR: false, PassportPhoto: false });
-        setUploadedDocData({ PAN: '', ADHAAR: '', PassportPhoto: '' });
-      } finally {
-        setLoadingDocs(false);
-      }
-    };
+      const uploadedState = {
+        PAN: !!documents.PAN,
+        ADHAAR: !!documents.ADHAAR,
+        PassportPhoto: !!documents.PassportPhoto
+      };
 
-    checkUploadedDocuments();
-  }, []);
+      const uploadedData = {
+        PAN: documents.PAN || '',
+        ADHAAR: documents.ADHAAR || '',
+        PassportPhoto: documents.PassportPhoto || ''
+      };
+
+      setUploadedDocs(uploadedState);
+      setUploadedDocData(uploadedData);
+    } catch (error) {
+      console.error('Error checking uploaded documents:', error);
+      setUploadedDocs({ PAN: false, ADHAAR: false, PassportPhoto: false });
+      setUploadedDocData({ PAN: '', ADHAAR: '', PassportPhoto: '' });
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  checkUploadedDocuments();
+}, []);
 
   // Upload flow functions
   const handleFileChange = (type, e) => {
-    console.log("type",type);
-    
+    console.log("FILES STATE:", files);
+    console.log("type", type);
+
     const file = e.target.files[0];
     if (file) {
       const maxSize = type === 'PassportPhoto' ? 2 * 1024 * 1024 : 10 * 1024 * 1024;
@@ -189,43 +222,87 @@ const CustomerFiles = () => {
     setUploadStatus(prev => ({ ...prev, [type]: '' }));
   };
 
+  // const handleUploadToServer = async (type) => {
+  //   if (!files[type]) {
+  //     setUploadStatus((prev) => ({ ...prev, [type]: 'No file selected.' }));
+  //     return;
+  //   }
+  //   setIsUploading((prev) => ({ ...prev, [type]: true }));
+  //   setUploadStatus((prev) => ({ ...prev, [type]: '' }));
+  //   setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+
+  //   let progress = 0;
+  //   const interval = setInterval(() => {
+  //     progress += 10;
+  //     setUploadProgress((prev) => ({ ...prev, [type]: progress }));
+  //     if (progress >= 90) clearInterval(interval);
+  //   }, 80);
+
+  //   try {
+  //     await CustomerDocApi.uploadDocument(type, files[type]);
+  //     setUploadStatus((prev) => ({ ...prev, [type]: 'Uploaded successfully!' }));
+  //     setUploadProgress((prev) => ({ ...prev, [type]: 100 }));
+  //     setUploadedDocs((prev) => ({ ...prev, [type]: true }));
+
+  //     // Store the preview as uploaded data
+  //     setUploadedDocData((prev) => ({ 
+  //       ...prev, 
+  //       [type]: previews[type] 
+  //     }));
+
+  //     setFiles((prev) => ({ ...prev, [type]: null }));
+  //     setPreviews((prev) => ({ ...prev, [type]: '' }));
+  //   } catch (err) {
+  //     setUploadStatus((prev) => ({ ...prev, [type]: 'Upload failed!' }));
+  //     setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+  //   } finally {
+  //     setIsUploading((prev) => ({ ...prev, [type]: false }));
+  //   }
+  // };
+
+
   const handleUploadToServer = async (type) => {
     if (!files[type]) {
-      setUploadStatus((prev) => ({ ...prev, [type]: 'No file selected.' }));
+      setUploadStatus(prev => ({ ...prev, [type]: 'No file selected.' }));
       return;
     }
-    setIsUploading((prev) => ({ ...prev, [type]: true }));
-    setUploadStatus((prev) => ({ ...prev, [type]: '' }));
-    setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
-    
+
+    setIsUploading(prev => ({ ...prev, [type]: true }));
+    setUploadStatus(prev => ({ ...prev, [type]: '' }));
+    setUploadProgress(prev => ({ ...prev, [type]: 0 }));
+
     let progress = 0;
     const interval = setInterval(() => {
       progress += 10;
-      setUploadProgress((prev) => ({ ...prev, [type]: progress }));
+      setUploadProgress(prev => ({ ...prev, [type]: progress }));
       if (progress >= 90) clearInterval(interval);
     }, 80);
-    
+
     try {
-      await CustomerDocApi.uploadDocument(type, files[type]);
-      setUploadStatus((prev) => ({ ...prev, [type]: 'Uploaded successfully!' }));
-      setUploadProgress((prev) => ({ ...prev, [type]: 100 }));
-      setUploadedDocs((prev) => ({ ...prev, [type]: true }));
-      
+      // Call postAllDocuments with the single file
+      const response = await CustomerDocApi.postAllDocuments({ [type]: files[type] });
+
+      console.log('Upload Response:', response);
+
+      setUploadStatus(prev => ({ ...prev, [type]: 'Uploaded successfully!' }));
+      setUploadProgress(prev => ({ ...prev, [type]: 100 }));
+      setUploadedDocs(prev => ({ ...prev, [type]: true }));
+
       // Store the preview as uploaded data
-      setUploadedDocData((prev) => ({ 
-        ...prev, 
-        [type]: previews[type] 
-      }));
-      
-      setFiles((prev) => ({ ...prev, [type]: null }));
-      setPreviews((prev) => ({ ...prev, [type]: '' }));
+      setUploadedDocData(prev => ({ ...prev, [type]: previews[type] }));
+
+      // Clear selected file & preview
+      setFiles(prev => ({ ...prev, [type]: null }));
+      setPreviews(prev => ({ ...prev, [type]: '' }));
     } catch (err) {
-      setUploadStatus((prev) => ({ ...prev, [type]: 'Upload failed!' }));
-      setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+      console.error('Upload failed:', err);
+      setUploadStatus(prev => ({ ...prev, [type]: 'Upload failed!' }));
+      setUploadProgress(prev => ({ ...prev, [type]: 0 }));
     } finally {
-      setIsUploading((prev) => ({ ...prev, [type]: false }));
+      setIsUploading(prev => ({ ...prev, [type]: false }));
     }
   };
+
 
   // Preview uploaded file from local state (for newly selected files)
   const handlePreviewLocal = (type) => {
@@ -275,6 +352,7 @@ const CustomerFiles = () => {
             >
               Change
             </button>
+
             <button
               onClick={() => handleUploadToServer(type)}
               className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 rounded-md hover:bg-yellow-700"
@@ -282,6 +360,7 @@ const CustomerFiles = () => {
             >
               {isUploading[type] ? 'Uploading...' : 'Upload'}
             </button>
+
             <button
               onClick={(e) => removeFile(type, e)}
               className="p-2 text-gray-400 hover:text-gray-600"
@@ -292,7 +371,7 @@ const CustomerFiles = () => {
         </div>
       );
     }
-    
+
     // If document is already uploaded to server
     if (uploadedDocs[type]) {
       return (
@@ -303,7 +382,7 @@ const CustomerFiles = () => {
             </div>
             <div>
               <p className="font-medium text-gray-900">{label} Uploaded</p>
-        
+
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -323,13 +402,12 @@ const CustomerFiles = () => {
         </div>
       );
     }
-    
+
     // Empty state - no file selected and not uploaded
     return (
-      <div 
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-          dragOver === type ? 'border-yellow-500 bg-yellow-50' : 'border-gray-300 hover:border-gray-400'
-        }`}
+      <div
+        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${dragOver === type ? 'border-yellow-500 bg-yellow-50' : 'border-gray-300 hover:border-gray-400'
+          }`}
         onClick={() => handleUploadClick(type)}
         onDragOver={(e) => handleDragOver(e, type)}
         onDragLeave={handleDragLeave}
@@ -359,86 +437,85 @@ const CustomerFiles = () => {
         </div>
 
         {/* Document Cards */}
-      <motion.div 
-  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-  variants={containerVariants}
-  initial="hidden"
-  animate="visible"
->
-  {fileTypes.map(({ key, label, description }) => (
-    <motion.div
-      key={key}
-      variants={cardVariants}
-      className="bg-white rounded-lg border border-yellow-200 overflow-hidden"
-    >
-      {/* Card Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">{label}</h3>
-            {(files[key] || uploadedDocs[key]) && (
-              <span className="text-sm text-green-600 font-medium">verified</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Card Body */}
-      <div className="p-6">
-        <p className="text-gray-600 mb-4">{description}</p>
-        
-        {loadingDocs ? (
-          <div className="flex items-center justify-center h-20">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
-          </div>
-        ) : (
-          <>
-            {renderFileStatus(key, label)}
-
-            {/* Progress Bar */}
-            {isUploading[key] && (
-              <div className="mt-4">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <motion.div 
-                    className="bg-yellow-500 h-2 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${uploadProgress[key]}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          {fileTypes.map(({ key, label, description }) => (
+            <motion.div
+              key={key}
+              variants={cardVariants}
+              className="bg-white rounded-lg border border-yellow-200 overflow-hidden"
+            >
+              {/* Card Header */}
+              <div className="px-6 py-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{label}</h3>
+                    {(files[key] || uploadedDocs[key]) && (
+                      <span className="text-sm text-green-600 font-medium">verified</span>
+                    )}
+                  </div>
                 </div>
-                <p className="text-xs text-gray-500 text-center mt-1">
-                  Uploading... {uploadProgress[key]}%
-                </p>
               </div>
-            )}
 
-            {/* Upload Status */}
-            {uploadStatus[key] && (
-              <div className={`mt-2 text-sm text-center font-medium ${
-                uploadStatus[key].includes('success') ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {uploadStatus[key]}
+              {/* Card Body */}
+              <div className="p-6">
+                <p className="text-gray-600 mb-4">{description}</p>
+
+                {loadingDocs ? (
+                  <div className="flex items-center justify-center h-20">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-yellow-600"></div>
+                  </div>
+                ) : (
+                  <>
+                    {renderFileStatus(key, label)}
+
+                    {/* Progress Bar */}
+                    {isUploading[key] && (
+                      <div className="mt-4">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <motion.div
+                            className="bg-yellow-500 h-2 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${uploadProgress[key]}%` }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        </div>
+                        <p className="text-xs text-gray-500 text-center mt-1">
+                          Uploading... {uploadProgress[key]}%
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Upload Status */}
+                    {uploadStatus[key] && (
+                      <div className={`mt-2 text-sm text-center font-medium ${uploadStatus[key].includes('success') ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                        {uploadStatus[key]}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-            )}
-          </>
-        )}
-      </div>
 
-      <input
-        type="file"
-        accept="image/*"
-        ref={inputRefs[key]}
-        style={{ display: 'none' }}
-        onChange={(e) => handleFileChange(key, e)}
-      />
-    </motion.div>
-  ))}
-</motion.div>
+              <input
+                type="file"
+                accept="image/*"
+                ref={inputRefs[key]}
+                style={{ display: 'none' }}
+                onChange={(e) => handleFileChange(key, e)}
+              />
+            </motion.div>
+          ))}
+        </motion.div>
         {/* Upload Guidelines */}
         <div className="mt-12 bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Upload Guidelines</h3>
           <p className="text-gray-600 mb-4">Please follow these guidelines for successful document verification</p>
-          
+
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Do's</h4>
@@ -465,7 +542,7 @@ const CustomerFiles = () => {
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Don'ts</h4>
               <ul className="space-y-2 text-sm text-gray-600">
@@ -498,7 +575,7 @@ const CustomerFiles = () => {
         <AnimatePresence>
           {modal.open && (
             <motion.div
-className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
