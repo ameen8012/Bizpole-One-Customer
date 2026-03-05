@@ -536,7 +536,7 @@ const OrderDetailView = () => {
                                                     </td>
 
                                                     <td className="px-6 py-4 text-slate-600">
-                                                        {invoice.ServiceName || "-"}
+                                                        {invoice?.serviceDetail?.ItemName || "-"}
                                                     </td>
 
                                                     <td className="px-6 py-4 text-slate-600">
