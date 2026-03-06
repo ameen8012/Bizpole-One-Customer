@@ -1,164 +1,233 @@
 // src/App.jsx
-import React, { useState } from "react";
-
-const servicesData = [
-  {
-    id: 1,
-    name: "Customer Support",
-    icon: "💬",
-    description: "Get help with your account and services"
-  },
-  {
-    id: 2,
-    name: "General Chat",
-    icon: "👥",
-    description: "Chat with the community"
-  },
-  {
-    id: 3,
-    name: "Service Updates",
-    icon: "🔔",
-    description: "Important announcements and updates"
-  },
-  {
-    id: 4,
-    name: "Premium Support",
-    icon: "⭐",
-    description: "Exclusive support for premium members"
-  },
-  {
-    id: 5,
-    name: "Technical Help",
-    icon: "🔧",
-    description: "Technical assistance and troubleshooting"
-  },
-  {
-    id: 6,
-    name: "Billing Questions",
-    icon: "💰",
-    description: "Payment and subscription inquiries"
-  }
-];
+import React, { useState, useEffect } from "react";
+import {
+  getServiceFormFullMapping,
+  getCompanyServices,
+  getServiceDeliverablesByServiceDetailId,
+} from "../api/TaskApi";
+import {
+  getSecureItem,
+  setSecureItem,
+  removeSecureItem,
+} from "../utils/secureStorage";
 
 const currentTasks = [
   {
     id: 1,
-    title: 'Create a user flow of social application design',
-    status: 'Approved',
-    date: '18 Apr 2021',
+    title: "Create a user flow of social application design",
+    status: "Approved",
+    date: "18 Apr 2021",
     progress: 60,
-    completed: true
+    completed: true,
   },
   {
     id: 2,
-    title: 'Create a user flow of social application design',
-    status: 'In review',
-    date: '18 Apr 2021',
+    title: "Create a user flow of social application design",
+    status: "In review",
+    date: "18 Apr 2021",
     progress: 40,
-    completed: true
+    completed: true,
   },
   {
     id: 3,
-    title: 'Landing page design for Fintech project of singapore',
-    status: 'Not Approved', // <-- changed from 'In review'
-    date: '18 Apr 2021',
+    title: "Landing page design for Fintech project of singapore",
+    status: "Not Approved", // <-- changed from 'In review'
+    date: "18 Apr 2021",
     progress: 80,
-    completed: true
+    completed: true,
   },
   {
     id: 4,
-    title: 'Interactive prototype for app screens of delannine project',
-    status: 'In review',
-    date: '18 Apr 2021',
+    title: "Interactive prototype for app screens of delannine project",
+    status: "In review",
+    date: "18 Apr 2021",
     progress: 25,
-    completed: false
+    completed: false,
   },
   {
     id: 5,
-    title: 'Interactive prototype for app screens of delannine project',
-    status: 'Approved',
-    date: '',
+    title: "Interactive prototype for app screens of delannine project",
+    status: "Approved",
+    date: "",
     progress: 90,
-    completed: true
-  }
-]
+    completed: true,
+  },
+];
 
 // Upcoming tasks should only show "Disable" (not started) and have no click functionality
 const upcomingTasks = [
   {
     id: 1,
-    title: 'Create a user flow of social application design',
-    status: 'Disable',
-    date: '18 Apr 2021',
-    progress: 0
+    title: "Create a user flow of social application design",
+    status: "Disable",
+    date: "18 Apr 2021",
+    progress: 0,
   },
   {
     id: 2,
-    title: 'Create a user flow of social application design',
-    status: 'Disable',
-    date: '18 Apr 2021',
-    progress: 0
+    title: "Create a user flow of social application design",
+    status: "Disable",
+    date: "18 Apr 2021",
+    progress: 0,
   },
   {
     id: 3,
-    title: 'Landing page design for Fintech project of singapore',
-    status: 'Disable',
-    date: '18 Apr 2021',
-    progress: 0
+    title: "Landing page design for Fintech project of singapore",
+    status: "Disable",
+    date: "18 Apr 2021",
+    progress: 0,
   },
   {
     id: 4,
-    title: 'Interactive prototype for app screens of delannine project',
-    status: 'Disable',
-    date: '',
-    progress: 0
+    title: "Interactive prototype for app screens of delannine project",
+    status: "Disable",
+    date: "",
+    progress: 0,
   },
   {
     id: 5,
-    title: 'Interactive prototype for app screens of delannine project',
-    status: 'Disable',
-    date: '',
-    progress: 0
-  }
-]
+    title: "Interactive prototype for app screens of delannine project",
+    status: "Disable",
+    date: "",
+    progress: 0,
+  },
+];
 
 export default function ServiceSelection() {
+  // State for company services
+  const [companyServices, setCompanyServices] = useState(null);
+  const [loadingCompanyServices, setLoadingCompanyServices] = useState(false);
+  const [companyServicesError, setCompanyServicesError] = useState(null);
+
+  // Fetch company services when companyId is available
+
+  useEffect(() => {
+    const raw = localStorage.getItem("selectedCompany");
+    if (raw && raw === "[object Object]") {
+      // Remove the invalid value
+      removeSecureItem("selectedCompany");
+      // Optionally, set a default or prompt user to re-select
+      console.warn(
+        "selectedCompany was invalid and has been removed. Please re-select the company.",
+      );
+    }
+  }, []);
+  // Get selectedCompany from secure storage
+  const selectedCompany = getSecureItem("selectedCompany");
+  console.log("selectedCompany from secure storage:", selectedCompany);
+  const companyId =
+    selectedCompany && selectedCompany.CompanyID
+      ? selectedCompany.CompanyID
+      : null;
   const [selectedService, setSelectedService] = useState(null);
+  const [serviceFormMapping, setServiceFormMapping] = useState(null);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [documentsError, setDocumentsError] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('Task');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [activeTab, setActiveTab] = useState("Task");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [selectedTask, setSelectedTask] = useState(null);
   const [collectDataTask, setCollectDataTask] = useState(null);
   const [noteTask, setNoteTask] = useState(null);
-
+  useEffect(() => {
+    if (companyId) {
+      setLoadingCompanyServices(true);
+      setCompanyServicesError(null);
+      getCompanyServices(companyId)
+        .then((data) => {
+          setCompanyServices(data);
+          setLoadingCompanyServices(false);
+          // Set first service as default if available
+          if (data && data.services && data.services.length > 0) {
+            setSelectedService(data.services[0]);
+          }
+        })
+        .catch((err) => {
+          setCompanyServicesError("Failed to fetch company services.");
+          setLoadingCompanyServices(false);
+        });
+    } else {
+      setCompanyServices(null);
+      setSelectedService(null);
+    }
+  }, [companyId]);
+  // Fix selectedCompany in localStorage if it is not valid JSON
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-700'
-      case 'In review':
-        return 'bg-yellow-100 text-yellow-700'
-      case 'Not Approved':
-        return 'bg-red-100 text-red-700'
-      case 'Disable':
-        return 'bg-gray-100 text-gray-500'
+      case "Approved":
+        return "bg-green-100 text-green-700";
+      case "In review":
+        return "bg-yellow-100 text-yellow-700";
+      case "Not Approved":
+        return "bg-red-100 text-red-700";
+      case "Disable":
+        return "bg-gray-100 text-gray-500";
       default:
-        return 'bg-gray-100 text-gray-600'
+        return "bg-gray-100 text-gray-600";
     }
-  }
+  };
 
   const getProgressBarColor = (progress) => {
-    if (progress >= 80) return 'bg-green-400'
-    if (progress >= 60) return 'bg-yellow-400'
-    if (progress >= 40) return 'bg-orange-400'
-    return 'bg-red-400'
-  }
+    if (progress >= 80) return "bg-green-400";
+    if (progress >= 60) return "bg-yellow-400";
+    if (progress >= 40) return "bg-orange-400";
+    return "bg-red-400";
+  };
 
-  const filteredCurrentTasks = statusFilter === 'All'
-    ? currentTasks
-    : currentTasks.filter(task => task.status === statusFilter)
-  const filteredUpcomingTasks = statusFilter === 'All'
-    ? upcomingTasks
-    : upcomingTasks.filter(task => task.status === statusFilter)
+  const filteredCurrentTasks =
+    statusFilter === "All"
+      ? currentTasks
+      : currentTasks.filter((task) => task.status === statusFilter);
+  const filteredUpcomingTasks =
+    statusFilter === "All"
+      ? upcomingTasks
+      : upcomingTasks.filter((task) => task.status === statusFilter);
+
+  // Fetch service form mapping when Documents tab is active and service is selected
+  useEffect(() => {
+    if (activeTab === "Documents" && selectedService && selectedService.id) {
+      setLoadingDocuments(true);
+      setDocumentsError(null);
+      getServiceFormFullMapping(selectedService.id)
+        .then((data) => {
+          setServiceFormMapping(data);
+          setLoadingDocuments(false);
+        })
+        .catch((err) => {
+          setDocumentsError("Failed to fetch service form mapping.");
+          setLoadingDocuments(false);
+        });
+    } else {
+      setServiceFormMapping(null);
+    }
+  }, [activeTab, selectedService]);
+
+  // Fetch deliverables when selectedService changes and Deliverables tab is active
+  const [serviceDeliverables, setServiceDeliverables] = useState(null);
+  const [loadingDeliverables, setLoadingDeliverables] = useState(false);
+  const [deliverablesError, setDeliverablesError] = useState(null);
+
+  useEffect(() => {
+    if (
+      activeTab === "Deliverables" &&
+      selectedService &&
+      selectedService.ServiceDetailID
+    ) {
+      setLoadingDeliverables(true);
+      setDeliverablesError(null);
+      getServiceDeliverablesByServiceDetailId(selectedService.ServiceDetailID)
+        .then((data) => {
+          setServiceDeliverables(data);
+          setLoadingDeliverables(false);
+        })
+        .catch((err) => {
+          setDeliverablesError("Failed to fetch deliverables.");
+          setLoadingDeliverables(false);
+        });
+    } else if (activeTab === "Deliverables") {
+      setServiceDeliverables(null);
+    }
+  }, [activeTab, selectedService]);
 
   // Form for collecting data
   const CollectDataForm = ({ task, onBack }) => {
@@ -175,7 +244,11 @@ export default function ServiceSelection() {
 
     const handleChange = (e) => {
       const { name, value, files } = e.target;
-      if (name === "fileAadhaar" || name === "filePan" || name === "fileOther") {
+      if (
+        name === "fileAadhaar" ||
+        name === "filePan" ||
+        name === "fileOther"
+      ) {
         setForm({ ...form, [name]: files[0] });
       } else {
         setForm({ ...form, [name]: value });
@@ -196,18 +269,29 @@ export default function ServiceSelection() {
         >
           ← Back to Tasks
         </button>
-        <h2 className="text-xl font-bold mb-4 text-yellow-600">Collect Data for Task</h2>
+        <h2 className="text-xl font-bold mb-4 text-yellow-600">
+          Collect Data for Task
+        </h2>
         <div className="mb-4">
           <div className="font-semibold text-gray-700 mb-2">Task Name</div>
           <div className="text-gray-900 mb-2">{task.title}</div>
           <div className="text-sm text-gray-500 mb-2">
-            Status: <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">{task.status}</span>
+            Status:{" "}
+            <span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+              {task.status}
+            </span>
           </div>
-          <div className="text-sm text-gray-500 mb-2">Date: {task.date || "N/A"}</div>
-          <div className="text-sm text-gray-500 mb-2">Progress: {task.progress}%</div>
+          <div className="text-sm text-gray-500 mb-2">
+            Date: {task.date || "N/A"}
+          </div>
+          <div className="text-sm text-gray-500 mb-2">
+            Progress: {task.progress}%
+          </div>
         </div>
         <form onSubmit={handleSubmit}>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Name
+          </label>
           <input
             type="text"
             name="name"
@@ -217,7 +301,9 @@ export default function ServiceSelection() {
             placeholder="Enter your name"
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Mobile Number
+          </label>
           <input
             type="tel"
             name="mobile"
@@ -227,7 +313,9 @@ export default function ServiceSelection() {
             placeholder="Enter your mobile number"
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Aadhaar Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Aadhaar Number
+          </label>
           <input
             type="text"
             name="aadhaar"
@@ -237,7 +325,9 @@ export default function ServiceSelection() {
             placeholder="Enter Aadhaar number"
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Upload Aadhaar Card</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload Aadhaar Card
+          </label>
           <input
             type="file"
             name="fileAadhaar"
@@ -255,7 +345,9 @@ export default function ServiceSelection() {
               />
             </div>
           )}
-          <label className="block text-sm font-medium text-gray-700 mb-2">PAN Number</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            PAN Number
+          </label>
           <input
             type="text"
             name="pan"
@@ -265,7 +357,9 @@ export default function ServiceSelection() {
             placeholder="Enter PAN number"
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Upload PAN Card</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload PAN Card
+          </label>
           <input
             type="file"
             name="filePan"
@@ -283,7 +377,9 @@ export default function ServiceSelection() {
               />
             </div>
           )}
-          <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Address
+          </label>
           <input
             type="text"
             name="address"
@@ -292,7 +388,9 @@ export default function ServiceSelection() {
             className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4"
             placeholder="Enter address"
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Upload Other Document</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload Other Document
+          </label>
           <input
             type="file"
             name="fileOther"
@@ -353,21 +451,31 @@ export default function ServiceSelection() {
         >
           ← Back to Tasks
         </button>
-        <h2 className="text-xl font-bold mb-4 text-red-600">Not Approved Task</h2>
+        <h2 className="text-xl font-bold mb-4 text-red-600">
+          Not Approved Task
+        </h2>
         <div className="mb-4">
           <div className="font-semibold text-gray-700 mb-2">Task Name</div>
           <div className="text-gray-900 mb-2">{task.title}</div>
           <div className="text-sm text-gray-500 mb-2">
-            Status: <span className="bg-red-100 text-red-700 px-2 py-1 rounded">{task.status}</span>
+            Status:{" "}
+            <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+              {task.status}
+            </span>
           </div>
-          <div className="text-sm text-gray-700 mb-2 font-semibold">Why not approved?</div>
+          <div className="text-sm text-gray-700 mb-2 font-semibold">
+            Why not approved?
+          </div>
           <div className="bg-gray-100 text-gray-700 rounded-lg p-3 mb-4">
-            Required data items are missing. Please re-submit with all required information.
+            Required data items are missing. Please re-submit with all required
+            information.
           </div>
         </div>
         {/* Show re-add form directly */}
         <form onSubmit={handleReAddSubmit}>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Name
+          </label>
           <input
             type="text"
             name="name"
@@ -377,7 +485,9 @@ export default function ServiceSelection() {
             placeholder="Enter your name"
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Description
+          </label>
           <textarea
             name="description"
             value={form.description}
@@ -387,7 +497,9 @@ export default function ServiceSelection() {
             rows={3}
             required
           />
-          <label className="block text-sm font-medium text-gray-700 mb-2">Upload Image</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Upload Image
+          </label>
           <input
             type="file"
             name="file"
@@ -421,70 +533,73 @@ export default function ServiceSelection() {
       <div className="flex items-center gap-12 mb-6">
         <h1 className="text-2xl font-semibold text-gray-800">Task</h1>
         <div className="relative">
-          <button 
+          <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="bg-yellow-400 hover:bg-[#F3C625] text-gray-500 font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+            className="bg-yellow-400 hover:bg-[#F3C625] text-gray-800 font-medium px-4 py-2 rounded-lg flex items-center gap-2"
           >
-            Choose Services
-            <span className="w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center text-white text-xs">⚙</span>
+            {selectedService && selectedService.ItemName
+              ? selectedService.ItemName
+              : "Choose Service"}
+            <span className="w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center text-white text-xs ml-2">
+              ⚙
+            </span>
           </button>
-          
           {/* Services Dropdown */}
           {isDropdownOpen && (
             <div className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
               <div className="p-3 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-800">Select a Service</h3>
+                <h3 className="font-semibold text-gray-800">
+                  Select a Service
+                </h3>
               </div>
               <div className="max-h-60 overflow-y-auto">
-                {servicesData.map(service => (
-                  <div
-                    key={service.id}
-                    onClick={() => {
-                      setSelectedService(service);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  >
-                    <span className="text-2xl mr-3">{service.icon}</span>
-                    <div>
-                      <h4 className="font-medium text-gray-800">{service.name}</h4>
-                      <p className="text-xs text-gray-500">{service.description}</p>
+                {loadingCompanyServices ? (
+                  <div className="p-4 text-gray-500">Loading...</div>
+                ) : companyServicesError ? (
+                  <div className="p-4 text-red-500">{companyServicesError}</div>
+                ) : companyServices &&
+                  companyServices.services &&
+                  companyServices.services.length > 0 ? (
+                  companyServices.services.map((service) => (
+                    <div
+                      key={service.ServiceDetailID}
+                      onClick={() => {
+                        setSelectedService(service);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`flex items-center p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0 ${selectedService && selectedService.ServiceDetailID === service.ServiceDetailID ? "bg-yellow-100" : ""}`}
+                    >
+                      <span className="text-2xl mr-3">🛠️</span>
+                      <div>
+                        <h4 className="font-medium text-gray-800">
+                          {service.ItemName ||
+                            `Service ID: ${service.ServiceID}`}
+                        </h4>
+                        <p className="text-xs text-gray-500">
+                          ServiceDetailID: {service.ServiceDetailID} | QuoteID:{" "}
+                          {service.QuoteID}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="p-4 text-gray-500">No services found.</div>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Selected Service Display */}
-      {selectedService && (
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <span className="text-2xl mr-3">{selectedService.icon}</span>
-              <div>
-                <p className="text-sm text-gray-500">Selected Service</p>
-                <h3 className="font-semibold text-gray-800">{selectedService.name}</h3>
-                <p className="text-xs text-gray-500">{selectedService.description}</p>
-              </div>
-            </div>
-            <button 
-              onClick={() => setSelectedService(null)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* GST Task Card */}
+      {/* GST Task Card (no dropdown here) */}
       <div className="bg-white  rounded-2xl border border-yellow-500 shadow-lg p-6  mb-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">GST</h2>
+        {selectedService && selectedService.ItemName && (
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            {selectedService.ItemName}
+          </h2>
+        )}
+        {/* Show selected service name below GST title if selected */}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="border-r border-gray-200 pr-4">
             <p className="text-sm text-gray-600 mb-2">Status</p>
@@ -497,7 +612,9 @@ export default function ServiceSelection() {
           </div>
           <div className="border-r border-gray-200 pr-4">
             <p className="text-sm text-gray-600 mb-2">Total Tasks</p>
-            <p className="text-lg font-semibold text-gray-800">15 <span className="text-gray-400">/</span> 48</p>
+            <p className="text-lg font-semibold text-gray-800">
+              15 <span className="text-gray-400">/</span> 48
+            </p>
           </div>
           <div className="border-r border-gray-200 pr-4">
             <p className="text-sm text-gray-600 mb-2">Start Date</p>
@@ -514,7 +631,7 @@ export default function ServiceSelection() {
       <div className="border-t border-[#F3C625] mt-12 mb-6">
         <div className="flex items-center justify-between mt-6">
           <div className="flex space-x-8">
-            {['Task', 'Documents', 'Deliverables'].map((tab) => (
+            {["Task", "Documents", "Deliverables"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => {
@@ -524,8 +641,8 @@ export default function ServiceSelection() {
                 }}
                 className={`pb-3 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab && !collectDataTask && !noteTask
-                    ? 'border-yellow-400 text-yellow-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? "border-yellow-400 text-yellow-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
                 }`}
               >
                 {tab}
@@ -550,7 +667,7 @@ export default function ServiceSelection() {
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Status:</span>
-            <select 
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="border border-gray-300 rounded px-2 py-1 text-sm"
@@ -571,15 +688,14 @@ export default function ServiceSelection() {
           onBack={() => setCollectDataTask(null)}
         />
       ) : noteTask ? (
-        <NoteForm
-          task={noteTask}
-          onBack={() => setNoteTask(null)}
-        />
-      ) : activeTab === 'Task' ? (
+        <NoteForm task={noteTask} onBack={() => setNoteTask(null)} />
+      ) : activeTab === "Task" ? (
         <>
           {/* Current Task Section */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Current Task</h3>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Current Task
+            </h3>
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white rounded-lg border border-gray-200">
                 <thead>
@@ -599,25 +715,33 @@ export default function ServiceSelection() {
                         key={task.id}
                         className="hover:bg-yellow-50 transition cursor-pointer"
                         onClick={() => {
-                          if (task.status === 'In review') setCollectDataTask(task);
-                          else if (task.status === 'Not Approved') setNoteTask(task);
+                          if (task.status === "In review")
+                            setCollectDataTask(task);
+                          else if (task.status === "Not Approved")
+                            setNoteTask(task);
                         }}
                       >
                         <td className="py-5 px-4 font-medium text-gray-800 flex items-center gap-2">
-                          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${task.completed ? 'bg-yellow-400' : 'border-2 border-gray-300'}`}>
-                            {task.completed && <span className="text-white text-xs">✓</span>}
+                          <span
+                            className={`w-6 h-6 rounded-full flex items-center justify-center ${task.completed ? "bg-yellow-400" : "border-2 border-gray-300"}`}
+                          >
+                            {task.completed && (
+                              <span className="text-white text-xs">✓</span>
+                            )}
                           </span>
                           {task.title}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`text-xs px-3 py-1 rounded-full font-medium ${statusColor}`}>
+                          <span
+                            className={`text-xs px-3 py-1 rounded-full font-medium ${statusColor}`}
+                          >
                             {task.status}
                           </span>
                         </td>
                         <td className="py-3 px-4 text-gray-600">{task.date}</td>
                         <td className="py-3 px-4">
                           <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full ${getProgressBarColor(task.progress)} transition-all duration-300`}
                               style={{ width: `${task.progress}%` }}
                             ></div>
@@ -631,17 +755,48 @@ export default function ServiceSelection() {
             </div>
           </div>
           {/* Upcoming Task Section */}
-      
         </>
-      ) : activeTab === 'Documents' ? (
+      ) : activeTab === "Documents" ? (
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Documents</h3>
-          <p className="text-gray-600">No documents uploaded yet.</p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Documents
+          </h3>
+          {loadingDocuments && (
+            <p className="text-gray-600">Loading documents...</p>
+          )}
+          {documentsError && <p className="text-red-500">{documentsError}</p>}
+          {!loadingDocuments && !documentsError && serviceFormMapping && (
+            <pre className="bg-gray-100 p-4 rounded text-xs overflow-x-auto">
+              {JSON.stringify(serviceFormMapping, null, 2)}
+            </pre>
+          )}
+          {!loadingDocuments && !documentsError && !serviceFormMapping && (
+            <p className="text-gray-600">No documents uploaded yet.</p>
+          )}
         </div>
-      ) : activeTab === 'Deliverables' ? (
+      ) : activeTab === "Deliverables" ? (
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Deliverables</h3>
-          <p className="text-gray-600">No deliverables available yet.</p>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Deliverables
+          </h3>
+          {loadingDeliverables && (
+            <p className="text-gray-600">Loading deliverables...</p>
+          )}
+          {deliverablesError && (
+            <p className="text-red-500">{deliverablesError}</p>
+          )}
+          {!loadingDeliverables &&
+            !deliverablesError &&
+            serviceDeliverables && (
+              <pre className="bg-gray-100 p-4 rounded text-xs overflow-x-auto">
+                {JSON.stringify(serviceDeliverables, null, 2)}
+              </pre>
+            )}
+          {!loadingDeliverables &&
+            !deliverablesError &&
+            !serviceDeliverables && (
+              <p className="text-gray-600">No deliverables available yet.</p>
+            )}
         </div>
       ) : null}
 
