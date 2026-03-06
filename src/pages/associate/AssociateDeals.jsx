@@ -369,7 +369,7 @@ const AssociateDeals = () => {
                                             {/* ACTION COLUMN */}
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    {!existingQuoteDealIds.includes(deal.id) && (
+                                                    {!existingQuoteDealIds.includes(deal.id) ? (
                                                         <button
                                                             onClick={() => handleCreateQuote(deal)}
                                                             disabled={creatingQuote === deal.id || deal.associate_request === 1}
@@ -387,7 +387,7 @@ const AssociateDeals = () => {
                                                                 deal.associate_request === 1 ? "Requested" : "Request Quote"
                                                             )}
                                                         </button>
-                                                    )}
+                                                    ) : <div className='px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-1.5 bg-slate-100 text-slate-400'>Created</div>}
 
                                                     <button
                                                         onClick={() => handleEdit(deal)}
