@@ -16,6 +16,21 @@ const Subscription = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedCount, setSelectedCount] = useState(0);
+  // Track selected services count from localStorage
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const arr = JSON.parse(localStorage.getItem("SelectedServices") || "[]");
+        setSelectedCount(Array.isArray(arr) ? arr.length : 0);
+      } catch {
+        setSelectedCount(0);
+      }
+    };
+    updateCount();
+    window.addEventListener("storage", updateCount);
+    return () => window.removeEventListener("storage", updateCount);
+  }, []);
 
   // 🔹 Handle quote creation
   const handleQuote = async (plan) => {
@@ -125,10 +140,16 @@ const Subscription = () => {
               Package
             </button>
             <button
-              className="inline-block bg-white text-black rounded-full px-4 py-2 font-medium border-2 cursor-pointer transition-colors duration-200 hover:bg-[#F3C625] hover:text-black"
+              className="inline-block bg-white text-black rounded-full px-4 py-2 font-medium border-2 cursor-pointer transition-colors duration-200 hover:bg-[#F3C625] hover:text-black relative"
               style={{ borderColor: "#F3C625" }}
+              onClick={() => navigate("/services")}
             >
               Choose individual service
+              {selectedCount > 0 && (
+                <span className="ml-2 inline-block bg-[#F3C625] text-black text-xs font-bold rounded-full px-3 py-1 align-middle">
+                  You chose {selectedCount} service{selectedCount > 1 ? "s" : ""}
+                </span>
+              )}
             </button>
           </div>
 

@@ -1,10 +1,13 @@
   import { motion } from "framer-motion";
   import { useNavigate } from "react-router-dom";
   import { ArrowRight, Phone, Building2, Sparkles } from "lucide-react";
+  import { useState } from "react";
+  import SigninModal from "./Modals/SigninModal";
 
-  const StartYourBusinessContent = ({ onNext }) => {
-    const navigate = useNavigate();
-    const cardVariants = {
+const StartYourBusinessContent = ({ onNext }) => {
+  const navigate = useNavigate();
+  const [showSigninModal, setShowSigninModal] = useState(false);
+  const cardVariants = {
       rest: { scale: 1, y: 0 },
       hover: {
         scale: 1.02,
@@ -21,7 +24,9 @@
       },
     };
 
-    return (
+  return (
+    <>
+      <SigninModal isOpen={showSigninModal} onClose={() => setShowSigninModal(false)} />
       <motion.div
         className="w-full max-w-7xl bg-white rounded-3xl shadow-2xl overflow-hidden"
         initial={{ opacity: 0, x: -100 }}
@@ -133,24 +138,21 @@
       </motion.button>
     </div>
 
-    {/* Help Section */}
-    {/* <div className="bg-gray-800 rounded-xl p-6 text-white">
-      <h3 className="font-semibold text-lg mb-2">
-        Not sure which to choose?
-      </h3>
-      <p className="text-gray-300 mb-4 text-sm">
-        Our business consultants are available to help you make the right
-        decision for your specific situation.
-      </p>
-      <button className="flex items-center space-x-2 text-yellow-400 hover:text-yellow-300 transition-colors">
-        <Phone className="w-4 h-4" />
-        <span className="text-sm font-medium">Talk to an expert</span>
+    {/* Sign In Section */}
+    <div className="bg-gray-100 rounded-xl p-6 text-gray-800 text-center mt-8">
+      <span className="font-semibold text-lg">Do you already have an account?</span>
+      <button
+        className="ml-3 px-6 py-2 bg-yellow-400 rounded-full font-semibold text-gray-900 hover:bg-yellow-500 transition"
+        onClick={() => setShowSigninModal(true)}
+      >
+        Sign In
       </button>
-    </div> */}
+    </div>
   </div>
 
         </div>
       </motion.div>
+    </>
     );
   };
 

@@ -53,6 +53,8 @@ import ExisitingCompanies from "./pages/ExisitingCompanies";
 import BusinessQuizWizard from "./components/Quastions";
 
 import { getSecureItem, setSecureItem } from "./utils/secureStorage";
+import { CartProvider } from "./context/CartContext";
+import GlobalCart from "./components/Cart/GlobalCart";
 
 // Associate Dashboard
 import AssociateLayout from "./pages/AssociateLayout";
@@ -119,11 +121,12 @@ function App() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {!hideLayout && <Navbar />}
+    <CartProvider>
+      <div className="flex flex-col min-h-screen">
+        {!hideLayout && <Navbar />}
 
-      <main className="flex-grow">
-        <Routes>
+        <main className="flex-grow">
+          <Routes>
 
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
@@ -197,11 +200,14 @@ function App() {
             </Route>
 
           </Route>
-        </Routes>
-      </main>
+          </Routes>
+        </main>
 
-      {!hideLayout && <Footer />}
-    </div>
+        {!hideLayout && <Footer />}
+        {/* Global floating cart, always visible */}
+        <GlobalCart />
+      </div>
+    </CartProvider>
   );
 }
 

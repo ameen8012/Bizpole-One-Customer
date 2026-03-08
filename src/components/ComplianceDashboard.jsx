@@ -104,7 +104,7 @@ const ComplianceDashboard = () => {
     }
     const secret = "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
     const encrypted = CryptoJS.AES.encrypt(String(targetQuoteId), secret).toString();
-    const url = `http://localhost:5174/quotes/saved-preview/${encodeURIComponent(encrypted)}`;
+    const url = `https://dev.bizpoleindia.in/quotes/saved-preview/${encodeURIComponent(encrypted)}`;
     window.open(url, "_blank");
   };
 

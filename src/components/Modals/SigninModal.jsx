@@ -299,7 +299,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
                     Don't Have An Account ? {" "}
                     <span
                       className="font-semibold underline cursor-pointer text-gray-800 hover:text-yellow-600 transition-colors"
-                      onClick={handleSwitchMode}
+                      onClick={() => navigate("/startbusiness")}
                     >
                       Sign up
                     </span>
