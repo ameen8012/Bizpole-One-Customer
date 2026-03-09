@@ -58,7 +58,7 @@ const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess }) => {
 
         setLoading(true);
         setStatus('saving');
-
+console.log("Submitting form with data:", serviceDetails); // Debug log
         try {
             const payload = {
                 CompanyID: serviceDetails?.CompanyID,

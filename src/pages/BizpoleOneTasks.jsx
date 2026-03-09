@@ -1,17 +1,17 @@
 // src/App.jsx
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
-
   getCompanyServices,
   getServiceDeliverablesByServiceDetailId,
   getResponseFields,
   getTasks,
 } from "../api/TaskApi";
+import { serviceFormMapping } from "../api/Services/ServiceDetails";
 // State for tasks fetched from /Task API
-
+import ServiceTaskListing from "../../src/components/associate/ServiceTaskListing";
 import {
   getSecureItem,
-  setSecureItem,
+
   removeSecureItem,
 } from "../utils/secureStorage";
 
@@ -99,6 +99,9 @@ const upcomingTasks = [
 
 export default function ServiceSelection() {
   // State for company services
+  // State for ServiceTaskListing integration
+  const [formConfig, setFormConfig] = useState([]);
+  const [service, setService] = useState(null);
   const [companyServices, setCompanyServices] = useState(null);
   const [loadingCompanyServices, setLoadingCompanyServices] = useState(false);
   const [companyServicesError, setCompanyServicesError] = useState(null);
@@ -281,6 +284,23 @@ export default function ServiceSelection() {
       setServiceDeliverables(null);
     }
   }, [activeTab, selectedService]);
+
+  // Fetch formConfig when selectedService changes
+  useEffect(() => {
+    if (selectedService && selectedService.ServiceID) {
+      setFormConfig([]);
+      serviceFormMapping(selectedService.ServiceID)
+        .then((res) => {
+          if (res?.data) setFormConfig(res.data);
+          else if (Array.isArray(res)) setFormConfig(res);
+        })
+        .catch((err) => {
+          // Optionally handle error
+          setFormConfig([]);
+        });
+      setService(selectedService);
+    }
+  }, [selectedService]);
 
   // Form for collecting data
   const CollectDataForm = ({ task, onBack }) => {
@@ -778,7 +798,7 @@ export default function ServiceSelection() {
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          {/* <div className="flex items-center gap-2 text-sm text-gray-600">
             <span>Status:</span>
             <select
               value={statusFilter}
@@ -790,7 +810,7 @@ export default function ServiceSelection() {
               <option>In review</option>
               <option>Disable</option>
             </select>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -806,66 +826,18 @@ export default function ServiceSelection() {
         <>
           {/* Current Task Section */}
           <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">
-              Current Task
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white rounded-lg border border-gray-200">
-                <thead>
-                  <tr className="text-sm font-medium text-gray-600 bg-gray-100">
-                    <th className="py-3 px-4 text-left">Task</th>
-                    <th className="py-3 px-4 text-left">Status</th>
-                    <th className="py-3 px-4 text-left">Date</th>
-                    <th className="py-3 px-4 text-left">Progress</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCurrentTasks.map((task) => {
-                    let statusColor = getStatusColor(task.status);
-
-                    return (
-                      <tr
-                        key={task.id}
-                        className="hover:bg-yellow-50 transition cursor-pointer"
-                        onClick={() => {
-                          if (task.status === "In review")
-                            setCollectDataTask(task);
-                          else if (task.status === "Not Approved")
-                            setNoteTask(task);
-                        }}
-                      >
-                        <td className="py-5 px-4 font-medium text-gray-800 flex items-center gap-2">
-                          <span
-                            className={`w-6 h-6 rounded-full flex items-center justify-center ${task.completed ? "bg-yellow-400" : "border-2 border-gray-300"}`}
-                          >
-                            {task.completed && (
-                              <span className="text-white text-xs">✓</span>
-                            )}
-                          </span>
-                          {task.title}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`text-xs px-3 py-1 rounded-full font-medium ${statusColor}`}
-                          >
-                            {task.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-gray-600">{task.date}</td>
-                        <td className="py-3 px-4">
-                          <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${getProgressBarColor(task.progress)} transition-all duration-300`}
-                              style={{ width: `${task.progress}%` }}
-                            ></div>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <ServiceTaskListing
+              formConfig={formConfig}
+              serviceDetails={{
+                CompanyID: companyId,
+                ServiceID: service?.ServiceID,
+                QuoteID: service?.QuoteID,
+                OrderID: service?.OrderID,
+                submittedBy:
+                  service?.submittedBy ??
+                  getSecureItem("partnerUser")?.EmployeeID,
+              }}
+            />
           </div>
           {/* Upcoming Task Section */}
         </>
