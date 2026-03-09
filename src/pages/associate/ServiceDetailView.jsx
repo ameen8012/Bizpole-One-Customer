@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { getSecureItem } from '../../utils/secureStorage';
 import jsPDF from 'jspdf';
 import DocumentCollectionTab from '../../components/Modals/DocumentationCollectionTab';
+import ServiceTaskListing from '../../components/associate/ServiceTaskListing';
 
 // ── Separate component import ──
 
@@ -63,7 +64,7 @@ const ServiceDetailView = () => {
 
     const mainTabs = [
         { name: 'Summary', icon: LayoutDashboard },
-        { name: 'Task Progress', icon: ListChecks },
+        { name: 'Task', icon: ListChecks },
         { name: 'Document Collection', icon: FileStack },
         { name: 'Deliverables', icon: Package },
     ];
@@ -121,8 +122,8 @@ const ServiceDetailView = () => {
         fetchDeliverables();
     }, [activeTab, id]);
 
-    console.log("SASASA",{id});
-    
+    console.log("SASASA", { id });
+
 
     // ── Fetch tasks (on tab switch) ──────────────────────────────────────────
     useEffect(() => {
@@ -135,7 +136,7 @@ const ServiceDetailView = () => {
                     franchiseId: 1,
                     page: 1,
                     limit: 10,
-                    serviceDetailsId: id ,
+                    serviceDetailsId: id,
                 });
                 if (response.success) setTasks(response.data || []);
             } catch (error) {
@@ -195,11 +196,10 @@ const ServiceDetailView = () => {
                             <button
                                 key={tab.name}
                                 onClick={() => setActiveTab(tab.name)}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-t-xl text-[11px] font-bold transition-all whitespace-nowrap border-b-2 ${
-                                    activeTab === tab.name
-                                        ? 'bg-[#fffbeb] text-[#4b49ac] border-[#4b49ac]'
-                                        : 'text-slate-400 border-transparent hover:text-slate-600 bg-slate-50/50 mr-1'
-                                }`}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-t-xl text-[11px] font-bold transition-all whitespace-nowrap border-b-2 ${activeTab === tab.name
+                                    ? 'bg-[#fffbeb] text-[#4b49ac] border-[#4b49ac]'
+                                    : 'text-slate-400 border-transparent hover:text-slate-600 bg-slate-50/50 mr-1'
+                                    }`}
                             >
                                 {tab.name}
                             </button>
@@ -266,84 +266,18 @@ const ServiceDetailView = () => {
                     </div>
                 )}
 
-                {/* Task Progress */}
-                {activeTab === 'Task Progress' && (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-900 tracking-tight">Task Listing</h2>
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Project Milestones</p>
-                                </div>
-                                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                    {tasks.filter(t => (t.status || '').toLowerCase() === 'completed').length} of {tasks.length} tasks completed
-                                    ({tasks.length > 0 ? Math.round((tasks.filter(t => (t.status || '').toLowerCase() === 'completed').length / tasks.length) * 100) : 0}%)
-                                </p>
-                            </div>
-                            <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-amber-400 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: `${tasks.length > 0 ? (tasks.filter(t => (t.status || '').toLowerCase() === 'completed').length / tasks.length) * 100 : 0}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            {tasksLoading ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-sm">
-                                    <Loader2 className="w-10 h-10 animate-spin text-amber-500 mx-auto mb-4" />
-                                    <p className="text-slate-500 font-medium">Crunching task data...</p>
-                                </div>
-                            ) : tasks.length === 0 ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 border-dashed p-16 text-center shadow-sm">
-                                    <Activity className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-slate-900 mb-1">No Tasks Found</h3>
-                                    <p className="text-slate-400 text-sm font-medium">There are no tasks assigned to this service yet.</p>
-                                </div>
-                            ) : (
-                                tasks.map((task, idx) => (
-                                    <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm hover:shadow-md transition-all group border-l-4 border-l-transparent hover:border-l-amber-400">
-                                        <div className="flex flex-col lg:flex-row gap-6 lg:items-center">
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="text-[15px] font-bold text-slate-800 truncate group-hover:text-amber-600 transition-colors mb-3">
-                                                    {task.TaskName}
-                                                </h4>
-                                                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 items-start">
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type</p>
-                                                        <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${task.IsInternal ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                            {task.ApprovalType || (task.IsInternal ? 'Internal' : 'External')}
-                                                        </span>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Owner</p>
-                                                        <p className="text-[11px] font-bold text-slate-600 truncate">({task.CompanyName || 'N/A'})</p>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Due Date</p>
-                                                        <p className="text-[11px] font-bold text-slate-600 italic">
-                                                            {task.TimeoutAt && task.TimeoutAt !== '0000-00-00 00:00:00' ? format(new Date(task.TimeoutAt), 'd MMM yyyy') : '—'}
-                                                        </p>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</p>
-                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold ${
-                                                            (task.status || '').toLowerCase() === 'completed' ? 'bg-emerald-100 text-emerald-700'
-                                                            : (task.status || '').toLowerCase() === 'active' ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-slate-100 text-slate-600'
-                                                        }`}>
-                                                            {(task.status || '').toLowerCase() === 'completed' && <CheckCircle2 className="w-3 h-3" />}
-                                                            {task.status || 'Pending'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
-                    </div>
+                {/* Task Section */}
+                {activeTab === 'Task' && (
+                    <ServiceTaskListing
+                        formConfig={formConfig}
+                        serviceDetails={{
+                            CompanyID: service?.CompanyID,
+                            ServiceID: service?.ServiceID,
+                            QuoteID: service?.QuoteID,
+                            OrderID: service?.OrderID,
+                            submittedBy: service?.submittedBy ?? getSecureItem("partnerUser")?.EmployeeID,
+                        }}
+                    />
                 )}
 
                 {/* Document Collection — props passed down, no data logic here */}
