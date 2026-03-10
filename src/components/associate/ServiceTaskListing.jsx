@@ -9,20 +9,29 @@ import {
 import { AnimatePresence } from "framer-motion";
 import ServiceTaskForm from "./ServiceTaskForm";
 
-const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate, responseFields }) => {
+const ServiceTaskListing = ({
+  formConfig,
+  serviceDetails,
+  onTaskUpdate,
+  responseFields,
+}) => {
+  console.log("MMMM", responseFields);
   const [selectedTask, setSelectedTask] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   console.log("In Service Listing ", serviceDetails);
   const getFieldPrevData = (fieldID, fieldName) => {
-    const dataArray = Array.isArray(responseFields) ? responseFields : (responseFields?.results || []);
+    const dataArray = Array.isArray(responseFields)
+      ? responseFields
+      : responseFields?.results || [];
     if (!dataArray || dataArray.length === 0) return null;
 
     for (let i = dataArray.length - 1; i >= 0; i--) {
       const set = dataArray[i];
-      const foundField = set.fields?.find(f =>
-        (f.field_id && Number(f.field_id) === Number(fieldID)) ||
-        (f.field_key === fieldName)
+      const foundField = set.fields?.find(
+        (f) =>
+          (f.field_id && Number(f.field_id) === Number(fieldID)) ||
+          f.field_key === fieldName,
       );
       if (foundField) return foundField;
     }
@@ -34,13 +43,13 @@ const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate, response
 
     return formConfig.map((item) => {
       const sections = item.Sections || [];
-      const fields = sections.flatMap(s => s.Fields || []);
+      const fields = sections.flatMap((s) => s.Fields || []);
 
       let allSubmitted = fields.length > 0;
       let anyRejected = false;
       let anySubmitted = false;
 
-      fields.forEach(field => {
+      fields.forEach((field) => {
         const prevData = getFieldPrevData(field.FieldID, field.FieldName);
         if (prevData) {
           anySubmitted = true;
@@ -67,21 +76,22 @@ const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate, response
         status: calculatedStatus,
         date: item.EmployeeAssignment?.CreatedAt
           ? new Date(item.EmployeeAssignment.CreatedAt).toLocaleDateString(
-            "en-GB",
-            {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            },
-          )
+              "en-GB",
+              {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              },
+            )
           : item.UpdatedAt
             ? new Date(item.UpdatedAt).toLocaleDateString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
             : "Pending",
-        progress: calculatedStatus === "Approved" ? 100 : (anySubmitted ? 70 : 40),
+        progress:
+          calculatedStatus === "Approved" ? 100 : anySubmitted ? 70 : 40,
         assignee: {
           name: item.EmployeeAssignment?.EmployeeName || "Aaron More",
           image:

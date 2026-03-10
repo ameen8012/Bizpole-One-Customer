@@ -53,6 +53,19 @@ export const getResponseFields = async (companyId) => {
     throw error;
   }
 };
+export const getResponseFieldsBySerId = async (serviceId) => {
+  try {
+    const response = await axiosInstance.post("/response-fieldsByServiceId", {
+      ServiceID: serviceId,
+    });
+
+    console.log("MMMNNBB", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching response fields:", error);
+    throw error;
+  }
+};
 // Fetch response fields for tasks by company ID (for Tasks tab)
 
 // Call /Task API endpoint

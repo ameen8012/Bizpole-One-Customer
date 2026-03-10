@@ -5,15 +5,12 @@ import {
   getServiceDeliverablesByServiceDetailId,
   getResponseFields,
   getTasks,
+  getResponseFieldsBySerId,
 } from "../api/TaskApi";
 import { serviceFormMapping } from "../api/Services/ServiceDetails";
 // State for tasks fetched from /Task API
 import ServiceTaskListing from "../../src/components/associate/ServiceTaskListing";
-import {
-  getSecureItem,
-
-  removeSecureItem,
-} from "../utils/secureStorage";
+import { getSecureItem, removeSecureItem } from "../utils/secureStorage";
 
 const currentTasks = [
   {
@@ -105,7 +102,11 @@ export default function ServiceSelection() {
   const [companyServices, setCompanyServices] = useState(null);
   const [loadingCompanyServices, setLoadingCompanyServices] = useState(false);
   const [companyServicesError, setCompanyServicesError] = useState(null);
-
+  const [responseFields, setResponseFields] = useState([]);
+  const [responseFieldsLoading, setResponseFieldsLoading] = useState(false);
+  useEffect(() => {
+    console.log("responseFields:", responseFields);
+  }, [responseFields]);
   // Fetch company services when companyId is available
 
   useEffect(() => {
@@ -233,12 +234,21 @@ export default function ServiceSelection() {
         "[Documents] Fetching response fields for companyId:",
         serviceCompanyId,
       );
-      getResponseFields(serviceCompanyId)
+      getResponseFieldsBySerId(service.ServiceID)
         .then((data) => {
           console.log("[Documents] getResponseFields API response:", data);
-          // Flatten all fields from all results and filter for verify: 1
+          // Flatten all fields from all results
           const allFields = (data.results || []).flatMap((r) => r.fields || []);
-          const verified = allFields.filter((f) => f.verify === 1);
+          let verified = [];
+          if (activeTab === "Documents") {
+            verified = allFields.filter(
+              (f) => f.verify === 1 || f.verify === 0,
+            );
+          } else if (activeTab === "Task") {
+            verified = allFields.filter((f) => f.verify === 1);
+          } else {
+            verified = allFields.filter((f) => f.verify === 0);
+          }
           setVerifiedFields(verified);
           setLoadingDocuments(false);
         })
@@ -251,7 +261,23 @@ export default function ServiceSelection() {
       setVerifiedFields([]);
     }
   }, [activeTab, selectedService]);
-
+  useEffect(() => {
+    const fetchFields = async () => {
+      console.log("DDDDD", activeTab);
+      // if (!['Documents', 'Task'].includes(activeTab) || !service?.CompanyID) return;
+      // setResponseFieldsLoading(true);
+      try {
+        console.log("Serrrr", { service });
+        const response = await getResponseFields(service.CompanyID);
+        setResponseFields(response.results || []);
+      } catch (error) {
+        console.error("Error fetching response fields:", error);
+      } finally {
+        setResponseFieldsLoading(false);
+      }
+    };
+    fetchFields();
+  }, [service?.CompanyID]);
   // Fetch deliverables when selectedService changes and Deliverables tab is active
   const [serviceDeliverables, setServiceDeliverables] = useState(null);
   const [loadingDeliverables, setLoadingDeliverables] = useState(false);
@@ -828,6 +854,7 @@ export default function ServiceSelection() {
           <div className="mb-8">
             <ServiceTaskListing
               formConfig={formConfig}
+              responseFields={responseFields}
               serviceDetails={{
                 CompanyID: companyId,
                 ServiceID: service?.ServiceID,
