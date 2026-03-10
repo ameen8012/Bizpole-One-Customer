@@ -15,10 +15,10 @@ export const getServiceDetailById = async (id) => {
     }
 };
 export const serviceFormMapping = async (id) => {
-    
+
     try {
-        const response = await axiosInstance.post(`/getServiceFormFullMapping`,{serviceId:id});
-        
+        const response = await axiosInstance.post(`/getServiceFormFullMapping`, { serviceId: id });
+
         return response.data;
     } catch (error) {
         console.error("Error fetching service form:", error);
@@ -28,9 +28,9 @@ export const serviceFormMapping = async (id) => {
 
 
 export const serviceFormSave = async (payload) => {
-    
+
     try {
-        const response = await axiosInstance.post(`/saveFormResponse`,payload);
+        const response = await axiosInstance.post(`/saveFormResponse`, payload);
         return response.data;
     } catch (error) {
         console.error("Error save the service form:", error);
@@ -84,3 +84,28 @@ export const getServiceTasks = async (params) => {
 
 
 
+/**
+ * Fetch response fields for a company
+ * @param {string|number} companyId 
+ * @returns {Promise<Array>}
+ */
+export const getResponseFields = async (companyId) => {
+    try {
+        const response = await axiosInstance.post("/response-fields", {
+            CompanyID: companyId,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching response fields:", error);
+        throw error;
+    }
+};
+export const updateRejectedFields = async (payload) => {
+    try {
+        const response = await axiosInstance.post("/update-rejected-fields", payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error updating rejected fields:", error);
+        throw error;
+    }
+};

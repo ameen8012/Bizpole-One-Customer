@@ -5,7 +5,7 @@ import {
     ListChecks, FileStack, LayoutDashboard, History, Target,
     Package, PieChart, Download, Eye, Activity
 } from 'lucide-react';
-import { getServiceDetailById, getServiceDeliverablesByServiceDetailId, getServiceTasks, serviceFormMapping, serviceFormSave } from '../../api/Services/ServiceDetails';
+import { getServiceDetailById, getServiceDeliverablesByServiceDetailId, getServiceTasks, serviceFormMapping, serviceFormSave, getResponseFields } from '../../api/Services/ServiceDetails';
 import { format } from 'date-fns';
 import { getSecureItem } from '../../utils/secureStorage';
 import jsPDF from 'jspdf';
@@ -31,6 +31,9 @@ const ServiceDetailView = () => {
     // formConfig & its loading state live here, passed as props to DocumentCollectionTab
     const [formConfig, setFormConfig] = useState(null);
     const [formConfigLoading, setFormConfigLoading] = useState(false);
+
+    const [responseFields, setResponseFields] = useState([]);
+    const [responseFieldsLoading, setResponseFieldsLoading] = useState(false);
 
     // ── PDF download helper ──────────────────────────────────────────────────
     const handleDownloadAsPDF = (url, label) => {
@@ -147,6 +150,23 @@ const ServiceDetailView = () => {
         };
         fetchTasks();
     }, [activeTab, id]);
+
+    // ── Fetch Response Fields (on tab switch) ───────────────────────────────
+    useEffect(() => {
+        const fetchFields = async () => {
+            if (!['Document Collection', 'Task'].includes(activeTab) || !service?.CompanyID) return;
+            setResponseFieldsLoading(true);
+            try {
+                const response = await getResponseFields(service.CompanyID);
+                setResponseFields(response.results || []);
+            } catch (error) {
+                console.error("Error fetching response fields:", error);
+            } finally {
+                setResponseFieldsLoading(false);
+            }
+        };
+        fetchFields();
+    }, [activeTab, service?.CompanyID]);
 
     // ── Guards ───────────────────────────────────────────────────────────────
     if (loading) {
@@ -270,6 +290,7 @@ const ServiceDetailView = () => {
                 {activeTab === 'Task' && (
                     <ServiceTaskListing
                         formConfig={formConfig}
+                        responseFields={responseFields}
                         serviceDetails={{
                             CompanyID: service?.CompanyID,
                             ServiceID: service?.ServiceID,
@@ -280,11 +301,11 @@ const ServiceDetailView = () => {
                     />
                 )}
 
-                {/* Document Collection — props passed down, no data logic here */}
+                {/* Document Collection — now using responseFields */}
                 {activeTab === 'Document Collection' && (
                     <DocumentCollectionTab
-                        formConfig={formConfig}
-                        formConfigLoading={formConfigLoading}
+                        responseFields={responseFields}
+                        loading={responseFieldsLoading}
                         serviceDetails={{
                             CompanyID: service?.CompanyID,
                             ServiceID: service?.ServiceID,

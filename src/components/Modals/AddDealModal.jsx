@@ -978,47 +978,47 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
 
                                         {/* Mobile */}
                                         <div>
-                                            <FieldLabel icon={Phone} label="Company Mobile" required />
-                                            <input type="text" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Enter company mobile number" className={inputCls(errors.mobile)} />
+                                            <FieldLabel icon={Phone} label="Customer Mobile" required />
+                                            <input type="text" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Enter customer mobile number" className={inputCls(errors.mobile)} />
                                             {errors.mobile && <p className="text-xs text-red-500 mt-1">{errors.mobile}</p>}
                                         </div>
 
                                         {/* Email */}
                                         <div>
-                                            <FieldLabel icon={Mail} label="Company Email" required />
-                                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter company email address" className={inputCls(errors.email)} />
+                                            <FieldLabel icon={Mail} label="Customer Email" required />
+                                            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter customer email address" className={inputCls(errors.email)} />
                                             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
                                         </div>
 
                                         {/* Country */}
                                         <div>
-                                            <FieldLabel icon={Globe} label="Company Country" />
+                                            <FieldLabel icon={Globe} label="Customer Country" />
                                             <input type="text" name="country" value={formData.country} onChange={handleChange} className={inputCls(false)} />
                                         </div>
 
                                         {/* State */}
                                         <div>
-                                            <FieldLabel icon={MapPin} label="Company State" required />
+                                            <FieldLabel icon={MapPin} label="Customer State" required />
                                             <Select options={locationData.states.map((s) => ({ value: s.stateName, label: s.stateName }))}
                                                 value={formData.state ? { value: formData.state, label: formData.state } : null}
                                                 onChange={(sel) => setFormData({ ...formData, state: sel?.value || "", district: "" })}
-                                                placeholder="Enter company state" isSearchable styles={rsStyles(errors.state)} />
+                                                placeholder="Enter customer state" isSearchable styles={rsStyles(errors.state)} />
                                             {errors.state && <p className="text-xs text-red-500 mt-1">{errors.state}</p>}
                                         </div>
 
                                         {/* District */}
                                         <div>
-                                            <FieldLabel icon={MapPin} label="Company District" required />
+                                            <FieldLabel icon={MapPin} label="Customer District" required />
                                             <Select options={availableDistricts.map((d) => ({ value: d.districtName, label: d.districtName }))}
                                                 value={formData.district ? { value: formData.district, label: formData.district } : null}
                                                 onChange={(sel) => setFormData({ ...formData, district: sel?.value || "" })}
-                                                placeholder="Enter company district" isSearchable isDisabled={!formData.state} styles={rsStyles(errors.district)} />
+                                                placeholder="Enter customer district" isSearchable isDisabled={!formData.state} styles={rsStyles(errors.district)} />
                                             {errors.district && <p className="text-xs text-red-500 mt-1">{errors.district}</p>}
                                         </div>
 
                                         {/* Preferred Language */}
                                         <div>
-                                            <FieldLabel icon={Languages} label="Company Preferred Language" />
+                                            <FieldLabel icon={Languages} label="Customer Preferred Language" />
                                             <div className="relative">
                                                 <select name="preferredLanguage" value={formData.preferredLanguage} onChange={handleChange} className={inputCls(false) + " appearance-none"}>
                                                     <option value=""></option>

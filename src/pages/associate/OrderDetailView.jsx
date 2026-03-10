@@ -36,12 +36,12 @@ const OrderDetailView = () => {
     const tabs = [
         { name: 'Summary', icon: LayoutDashboard },
         // { name: 'Services', icon: ListChecks },
-        { name: 'Files', icon: FolderOpen },
+        // { name: 'Files', icon: FolderOpen },
         { name: 'Receipts', icon: Receipt },
         { name: 'Invoice', icon: FileStack },
-        { name: 'Notes', icon: FileText },
+        // { name: 'Notes', icon: FileText },
         // { name: 'Event Logs', icon: History },
-        { name: 'Tasks', icon: ListChecks },
+        // { name: 'Tasks', icon: ListChecks },
         // { name: 'Chat', icon: MessageSquare },
     ];
 
