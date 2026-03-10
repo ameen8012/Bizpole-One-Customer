@@ -154,11 +154,11 @@ const ServiceDetailView = () => {
     // ── Fetch Response Fields (on tab switch) ───────────────────────────────
     useEffect(() => {
         const fetchFields = async () => {
-            if (activeTab !== 'Document Collection' || !service?.CompanyID) return;
+            if (!['Document Collection', 'Task'].includes(activeTab) || !service?.CompanyID) return;
             setResponseFieldsLoading(true);
             try {
                 const response = await getResponseFields(service.CompanyID);
-                setResponseFields(response || []);
+                setResponseFields(response.results || []);
             } catch (error) {
                 console.error("Error fetching response fields:", error);
             } finally {
@@ -290,6 +290,7 @@ const ServiceDetailView = () => {
                 {activeTab === 'Task' && (
                     <ServiceTaskListing
                         formConfig={formConfig}
+                        responseFields={responseFields}
                         serviceDetails={{
                             CompanyID: service?.CompanyID,
                             ServiceID: service?.ServiceID,

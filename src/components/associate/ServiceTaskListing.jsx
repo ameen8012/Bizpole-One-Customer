@@ -9,22 +9,64 @@ import {
 import { AnimatePresence } from "framer-motion";
 import ServiceTaskForm from "./ServiceTaskForm";
 
-const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate }) => {
+const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate, responseFields }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   console.log("In Service Listing ", serviceDetails);
+  const getFieldPrevData = (fieldID, fieldName) => {
+    const dataArray = Array.isArray(responseFields) ? responseFields : (responseFields?.results || []);
+    if (!dataArray || dataArray.length === 0) return null;
+
+    for (let i = dataArray.length - 1; i >= 0; i--) {
+      const set = dataArray[i];
+      const foundField = set.fields?.find(f =>
+        (f.field_id && Number(f.field_id) === Number(fieldID)) ||
+        (f.field_key === fieldName)
+      );
+      if (foundField) return foundField;
+    }
+    return null;
+  };
+
   const tasks = useMemo(() => {
     if (!formConfig) return [];
 
-    return formConfig.map((item) => ({
-      id: item.Id,
-      title: item.SubFormMaster?.SubFormName || "Required Form",
-      subtitle:
-        item.Section || item.Sections?.[0]?.SectionName || "Documentation",
-      status: item.Status || "In review",
-      date: item.EmployeeAssignment?.CreatedAt
-        ? new Date(item.EmployeeAssignment.CreatedAt).toLocaleDateString(
+    return formConfig.map((item) => {
+      const sections = item.Sections || [];
+      const fields = sections.flatMap(s => s.Fields || []);
+
+      let allSubmitted = fields.length > 0;
+      let anyRejected = false;
+      let anySubmitted = false;
+
+      fields.forEach(field => {
+        const prevData = getFieldPrevData(field.FieldID, field.FieldName);
+        if (prevData) {
+          anySubmitted = true;
+          if (prevData.reject === 1) anyRejected = true;
+        } else {
+          allSubmitted = false;
+        }
+      });
+
+      let calculatedStatus = item.Status || "In review";
+      if (anyRejected) {
+        calculatedStatus = "Not Approved";
+      } else if (allSubmitted && !anyRejected) {
+        calculatedStatus = "Approved";
+      } else if (anySubmitted) {
+        calculatedStatus = "In review";
+      }
+
+      return {
+        id: item.Id,
+        title: item.SubFormMaster?.SubFormName || "Required Form",
+        subtitle:
+          item.Section || item.Sections?.[0]?.SectionName || "Documentation",
+        status: calculatedStatus,
+        date: item.EmployeeAssignment?.CreatedAt
+          ? new Date(item.EmployeeAssignment.CreatedAt).toLocaleDateString(
             "en-GB",
             {
               day: "2-digit",
@@ -32,26 +74,27 @@ const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate }) => {
               year: "numeric",
             },
           )
-        : item.UpdatedAt
-          ? new Date(item.UpdatedAt).toLocaleDateString("en-GB", {
+          : item.UpdatedAt
+            ? new Date(item.UpdatedAt).toLocaleDateString("en-GB", {
               day: "2-digit",
               month: "short",
               year: "numeric",
             })
-          : "Pending",
-      progress: item.Progress || (item.Status === "Approved" ? 100 : 40),
-      assignee: {
-        name: item.EmployeeAssignment?.EmployeeName || "Aaron More",
-        image:
-          "https://ui-avatars.com/api/?name=" +
-          encodeURIComponent(
-            item.EmployeeAssignment?.EmployeeName || "Aaron More",
-          ) +
-          "&background=4b49ac&color=fff",
-      },
-      originalData: item,
-    }));
-  }, [formConfig]);
+            : "Pending",
+        progress: calculatedStatus === "Approved" ? 100 : (anySubmitted ? 70 : 40),
+        assignee: {
+          name: item.EmployeeAssignment?.EmployeeName || "Aaron More",
+          image:
+            "https://ui-avatars.com/api/?name=" +
+            encodeURIComponent(
+              item.EmployeeAssignment?.EmployeeName || "Aaron More",
+            ) +
+            "&background=4b49ac&color=fff",
+        },
+        originalData: item,
+      };
+    });
+  }, [formConfig, responseFields]);
 
   const filteredTasks = useMemo(() => {
     let result = tasks;
@@ -228,6 +271,7 @@ const ServiceTaskListing = ({ formConfig, serviceDetails, onTaskUpdate }) => {
           <ServiceTaskForm
             task={selectedTask}
             serviceDetails={serviceDetails}
+            responseFields={responseFields}
             onClose={() => setSelectedTask(null)}
             onSuccess={() => {
               setSelectedTask(null);

@@ -100,3 +100,12 @@ export const getResponseFields = async (companyId) => {
         throw error;
     }
 };
+export const updateRejectedFields = async (payload) => {
+    try {
+        const response = await axiosInstance.post("/update-rejected-fields", payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error updating rejected fields:", error);
+        throw error;
+    }
+};

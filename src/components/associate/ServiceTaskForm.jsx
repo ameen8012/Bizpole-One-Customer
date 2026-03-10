@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Upload, Info, Loader2, CheckCircle2, AlertCircle, Layout } from 'lucide-react';
-import { serviceFormSave } from '../../api/Services/ServiceDetails';
+import { X, Upload, Info, Loader2, CheckCircle2, AlertCircle, Layout, Eye } from 'lucide-react';
+import { serviceFormSave, updateRejectedFields } from '../../api/Services/ServiceDetails';
 import { uploadFile } from '../../api/StorageApi';
 
 
-const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess }) => {
+const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess, responseFields }) => {
     const [formData, setFormData] = useState({});
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
@@ -14,20 +14,63 @@ const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess }) => {
     const item = task.originalData;
     const sections = item.Sections || [];
 
+    // ── Helper to get previous field data ──
+    const getFieldPrevData = (fieldID, fieldName) => {
+        const dataArray = Array.isArray(responseFields) ? responseFields : (responseFields?.results || []);
+        if (!dataArray || dataArray.length === 0) return null;
+
+        // Loop backwards through response sets to find the most recent submission
+        for (let i = dataArray.length - 1; i >= 0; i--) {
+            const set = dataArray[i];
+            const foundField = set.fields?.find(f =>
+                (f.field_id && Number(f.field_id) === Number(fieldID)) ||
+                (f.field_key === fieldName)
+            );
+            if (foundField) return foundField;
+        }
+        return null;
+    };
+
     // ── Pre-fill data ──
     useEffect(() => {
         const initialData = {};
         sections.forEach(section => {
             section.Fields?.forEach(field => {
-                if (field.Value) {
+                const prevData = getFieldPrevData(field.FieldID, field.FieldName);
+                if (prevData) {
+                    // Use field_text for files/text, or value_json fallback
+                    const val = prevData.field_text || (typeof prevData.value_json === 'string' ? prevData.value_json : "");
+                    initialData[`${section.SectionID}_${field.FieldID}`] = val;
+                } else if (field.Value) {
                     initialData[`${section.SectionID}_${field.FieldID}`] = field.Value;
                 }
             });
         });
         setFormData(initialData);
-    }, [sections]);
+    }, [sections, responseFields]);
 
-    const handleFieldChange = (sectionID, fieldID, val) => {
+    const isFieldEditable = (fieldID, fieldName) => {
+        const prevData = getFieldPrevData(fieldID, fieldName);
+        // If never submitted, it's editable. If submitted, only editable if rejected.
+        if (!prevData) return true;
+        return prevData.reject === 1;
+    };
+
+    const hasRejectedFields = sections.some(section =>
+        section.Fields?.some(field => {
+            const prevData = getFieldPrevData(field.FieldID, field.FieldName);
+            return prevData && prevData.reject === 1;
+        })
+    );
+
+    const hasPreviousSubmission = sections.some(section =>
+        section.Fields?.some(field => getFieldPrevData(field.FieldID, field.FieldName))
+    );
+
+    const showSubmit = !hasPreviousSubmission || hasRejectedFields;
+
+    const handleFieldChange = (sectionID, fieldID, fieldName, val) => {
+        if (!isFieldEditable(fieldID, fieldName)) return;
         setFormData(prev => ({
             ...prev,
             [`${sectionID}_${fieldID}`]: val
@@ -45,7 +88,8 @@ const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess }) => {
         let newErrors = {};
         sections.forEach(section => {
             section.Fields.forEach(field => {
-                if (field.IsMandatory === 1 && !formData[`${section.SectionID}_${field.FieldID}`]) {
+                // Only validate editable fields? Usually yes, if it's already there it's fine.
+                if (isFieldEditable(field.FieldID) && field.IsMandatory === 1 && !formData[`${section.SectionID}_${field.FieldID}`]) {
                     newErrors[`${section.SectionID}_${field.FieldID}`] = 'Required';
                 }
             });
@@ -60,7 +104,7 @@ const ServiceTaskForm = ({ task, serviceDetails, onClose, onSuccess }) => {
 
         setLoading(true);
         setStatus('saving');
-console.log("Submitting form with data:", serviceDetails); // Debug log
+        console.log("Submitting form with data:", serviceDetails);
         try {
             const finalFormData = { ...formData };
 
@@ -114,13 +158,46 @@ console.log("Submitting form with data:", serviceDetails); // Debug log
             };
 
 
-            await serviceFormSave(payload);
+            if (hasPreviousSubmission) {
+                // If it's an update to an existing submission (specifically for rejected fields)
+                const updates = [];
+                sections.forEach(section => {
+                    section.Fields.forEach(field => {
+                        const editable = isFieldEditable(field.FieldID, field.FieldName);
+                        const prevData = getFieldPrevData(field.FieldID, field.FieldName);
+
+                        // Only include fields that are editable (rejected) and actually have previous data to update
+                        if (editable && prevData && prevData.fieldRows_id) {
+                            const val = finalFormData[`${section.SectionID}_${field.FieldID}`];
+                            const isFile = (field.FieldType || '').toLowerCase() === 'file';
+
+                            updates.push({
+                                fieldRowsId: prevData.fieldRows_id,
+                                value: val,
+                                fieldText: isFile ? val : null
+                            });
+                        }
+                    });
+                });
+
+                if (updates.length > 0) {
+                    await updateRejectedFields({ updates });
+                } else {
+                    // Fallback to normal save if no specific updates found but we somehow got here
+                    await serviceFormSave(payload);
+                }
+            } else {
+                // First-time submission
+                await serviceFormSave(payload);
+            }
+
             setStatus('success');
+            if (onSuccess) onSuccess();
             setTimeout(() => {
-                onSuccess();
+                onClose();
             }, 1500);
-        } catch (err) {
-            console.error("Save error:", err);
+        } catch (error) {
+            console.error("Error saving form:", error);
             setStatus('error');
         } finally {
             setLoading(false);
@@ -178,12 +255,24 @@ console.log("Submitting form with data:", serviceDetails); // Debug log
                                             const fieldKey = `${section.SectionID}_${field.FieldID}`;
                                             const hasError = !!errors[fieldKey];
                                             const type = (field.FieldType || 'Text').toLowerCase();
+                                            const editable = isFieldEditable(field.FieldID, field.FieldName);
+                                            const prevData = getFieldPrevData(field.FieldID, field.FieldName);
 
                                             return (
                                                 <div key={field.FieldID} className="space-y-2 group">
                                                     <div className="flex items-center justify-between">
-                                                        <label className="text-[13px] font-bold text-slate-700 tracking-wide">
+                                                        <label className="text-[13px] font-bold text-slate-700 tracking-wide flex items-center gap-1.5">
                                                             {field.FieldName}
+                                                            {prevData && prevData.reject === 1 && (
+                                                                <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-rose-50 text-rose-500 text-[10px] rounded-md font-bold uppercase tracking-tighter">
+                                                                    <AlertCircle className="w-2.5 h-2.5" /> REJECTED
+                                                                </span>
+                                                            )}
+                                                            {prevData && prevData.verify === 1 && (
+                                                                <span className="flex items-center gap-0.5 px-1.5 py-0.5 bg-emerald-50 text-emerald-500 text-[10px] rounded-md font-bold uppercase tracking-tighter">
+                                                                    <CheckCircle2 className="w-2.5 h-2.5" /> VERIFIED
+                                                                </span>
+                                                            )}
                                                         </label>
                                                         <Info className="w-3.5 h-3.5 text-rose-300 group-hover:text-rose-400 cursor-help" />
                                                     </div>
@@ -191,24 +280,43 @@ console.log("Submitting form with data:", serviceDetails); // Debug log
                                                     {type === 'file' ? (
                                                         <div className="relative">
                                                             <label
-                                                                className={`flex items-center gap-3 px-5 py-3.5 bg-amber-400 text-slate-900 rounded-xl font-black text-[12px] cursor-pointer hover:bg-amber-500 transition-all shadow-sm hover:shadow active:scale-[0.98] ${hasError ? 'ring-2 ring-rose-300' : ''}`}
+                                                                className={`flex items-center gap-3 px-5 py-3.5 bg-amber-400 text-slate-900 rounded-xl font-black text-[12px] cursor-pointer hover:bg-amber-500 transition-all shadow-sm hover:shadow active:scale-[0.98] ${hasError ? 'ring-2 ring-rose-300' : ''} ${!editable ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400' : ''}`}
                                                             >
                                                                 <Upload className="w-4 h-4" />
-                                                                {formData[fieldKey] ? (formData[fieldKey].name || 'File Uploaded') : 'Upload Files'}
+                                                                <span className="truncate max-w-[180px]">
+                                                                    {formData[fieldKey] ? (
+                                                                        typeof formData[fieldKey] === 'string' ?
+                                                                            (formData[fieldKey].split('/').pop() || 'View File') :
+                                                                            (formData[fieldKey].name || 'File Selected')
+                                                                    ) : 'Upload Files'}
+                                                                </span>
                                                                 <input
                                                                     type="file"
                                                                     className="hidden"
-                                                                    onChange={(e) => handleFieldChange(section.SectionID, field.FieldID, e.target.files[0])}
+                                                                    disabled={!editable}
+                                                                    onChange={(e) => handleFieldChange(section.SectionID, field.FieldID, field.FieldName, e.target.files[0])}
                                                                 />
                                                             </label>
+                                                            {!editable && formData[fieldKey] && (
+                                                                <div className="flex items-center justify-between mt-2 pl-1">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => window.open(formData[fieldKey], '_blank')}
+                                                                        className="text-[10px] font-bold text-blue-500 hover:text-blue-600 transition-colors flex items-center gap-1.5"
+                                                                    >
+                                                                        <Eye className="w-3.5 h-3.5" /> View Previous File
+                                                                    </button>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ) : (
                                                         <div className="relative">
                                                             <input
                                                                 type={type === 'number' ? 'number' : type === 'date' ? 'date' : 'text'}
                                                                 value={formData[fieldKey] || ''}
-                                                                onChange={(e) => handleFieldChange(section.SectionID, field.FieldID, e.target.value)}
-                                                                className={`w-full px-5 py-3.5 bg-white border-2 rounded-2xl text-[13px] font-medium text-slate-700 transition-all outline-none focus:border-amber-400 ${hasError ? 'border-rose-100 bg-rose-50/20' : 'border-slate-100 bg-slate-50/30 focus:bg-white'}`}
+                                                                disabled={!editable}
+                                                                onChange={(e) => handleFieldChange(section.SectionID, field.FieldID, field.FieldName, e.target.value)}
+                                                                className={`w-full px-5 py-3.5 bg-white border-2 rounded-2xl text-[13px] font-medium text-slate-700 transition-all outline-none focus:border-amber-400 ${hasError ? 'border-rose-100 bg-rose-50/20' : 'border-slate-100 bg-slate-50/30 focus:bg-white'} ${!editable ? 'bg-slate-50/50 cursor-not-allowed text-slate-400' : ''}`}
                                                                 placeholder="Select an option..."
                                                             />
                                                             {type === 'select' && (
@@ -221,7 +329,7 @@ console.log("Submitting form with data:", serviceDetails); // Debug log
 
                                                     <div className="flex items-center justify-between">
                                                         <p className={`text-[11px] font-bold uppercase tracking-wider ${hasError ? 'text-rose-500' : 'text-slate-300'}`}>
-                                                            {hasError ? errors[fieldKey] : 'Required'}
+                                                            {hasError ? errors[fieldKey] : (field.IsMandatory === 1 ? 'Required' : 'Optional')}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -235,7 +343,7 @@ console.log("Submitting form with data:", serviceDetails); // Debug log
                 </form>
 
                 {/* Footer */}
-                {status !== 'success' && (
+                {status !== 'success' && showSubmit && (
                     <div className="px-10 py-8 bg-slate-50/50 flex items-center justify-end gap-4">
                         {status === 'error' && (
                             <p className="flex items-center gap-1.5 text-xs font-bold text-rose-500 mr-auto">
