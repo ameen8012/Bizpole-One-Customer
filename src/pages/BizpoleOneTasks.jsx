@@ -104,9 +104,6 @@ export default function ServiceSelection() {
   const [companyServicesError, setCompanyServicesError] = useState(null);
   const [responseFields, setResponseFields] = useState([]);
   const [responseFieldsLoading, setResponseFieldsLoading] = useState(false);
-  const [serviceFormFullMapping, setServiceFormFullMapping] = useState(null);
-  // Fetch service form full mapping when selectedService changes
-  
   useEffect(() => {
     console.log("responseFields:", responseFields);
   }, [responseFields]);
@@ -143,24 +140,21 @@ export default function ServiceSelection() {
   const [noteTask, setNoteTask] = useState(null);
   useEffect(() => {
     if (companyId) {
-      const fetchCompanyServices = async () => {
-        setLoadingCompanyServices(true);
-        setCompanyServicesError(null);
-        try {
-          const data = await getCompanyServices(companyId);
+      setLoadingCompanyServices(true);
+      setCompanyServicesError(null);
+      getCompanyServices(companyId)
+        .then((data) => {
           setCompanyServices(data);
+          setLoadingCompanyServices(false);
           // Set first service as default if available
           if (data && data.services && data.services.length > 0) {
             setSelectedService(data.services[0]);
-            setSelectedServiceId(data.services[0].ServiceID);
           }
-        } catch (err) {
+        })
+        .catch((err) => {
           setCompanyServicesError("Failed to fetch company services.");
-        } finally {
           setLoadingCompanyServices(false);
-        }
-      };
-      fetchCompanyServices();
+        });
     } else {
       setCompanyServices(null);
       setSelectedService(null);
@@ -169,34 +163,32 @@ export default function ServiceSelection() {
   const [tasksFromApi, setTasksFromApi] = useState([]);
   const [loadingTasks, setLoadingTasks] = useState(false);
   const [tasksError, setTasksError] = useState(null);
-  const [selectedserviceid, setSelectedServiceId] = useState(null);
   // Fetch tasks from /Task API when Task tab is active and service is selected
   useEffect(() => {
     const serviceCompanyId =
       selectedService &&
       (selectedService.CompanyID || selectedService.companyId || companyId);
     if (activeTab === "Task" && serviceCompanyId) {
-      const fetchTasks = async () => {
-        setLoadingTasks(true);
-        setTasksError(null);
-        try {
-          const data = await getTasks({
-            ServiceDetailID: selectedService?.ServiceDetailID,
-            QuoteID: selectedService?.QuoteID,
-          });
+      setLoadingTasks(true);
+      setTasksError(null);
+      // You can adjust the payload as needed
+      getTasks({
+        ServiceDetailID: selectedService?.ServiceDetailID,
+        QuoteID: selectedService?.QuoteID,
+      })
+        .then((data) => {
           console.log("[Task API] /Task response:", data);
           setTasksFromApi(data || []);
-        } catch (err) {
-          setTasksError("Failed to fetch tasks from /Task API.");
-        } finally {
           setLoadingTasks(false);
-        }
-      };
-      fetchTasks();
+        })
+        .catch((err) => {
+          setTasksError("Failed to fetch tasks from /Task API.");
+          setLoadingTasks(false);
+        });
     } else if (activeTab === "Task") {
       setTasksFromApi([]);
     }
-  }, [activeTab, selectedService,]);
+  }, [activeTab, selectedService]);
   // Fix selectedCompany in localStorage if it is not valid JSON
   const getStatusColor = (status) => {
     switch (status) {
@@ -230,36 +222,20 @@ export default function ServiceSelection() {
       : upcomingTasks.filter((task) => task.status === statusFilter);
 
   // Fetch service form mapping when Documents tab is active and service is selected
-
   useEffect(() => {
     // Use companyId from selectedService if available, else fallback to global companyId
     const serviceCompanyId =
       selectedService &&
       (selectedService.CompanyID || selectedService.companyId || companyId);
-    console.log("arshin", { selectedService, serviceCompanyId });
-    if (
-      activeTab === "Documents" &&
-      serviceCompanyId &&
-      selectedService &&
-      selectedService.ServiceID
-    ) {
-      console.log("inside if");
-      const fetchResponseFields = async () => {
-        setLoadingDocuments(true);
-        setDocumentsError(null);
-        console.log(
-          "[Documents] Fetching response fields for companyI:",
-          serviceCompanyId,
-        );
-        try {
-           
-          const data1 = await getServiceFormFullMapping(
-            selectedService.ServiceID,
-            setServiceFormFullMapping(data1)
-          );
-          const data = await getResponseFieldsBySerId(
-            selectedService.ServiceID,
-          );
+    if (activeTab === "Documents" && serviceCompanyId) {
+      setLoadingDocuments(true);
+      setDocumentsError(null);
+      console.log(
+        "[Documents] Fetching response fields for companyId:",
+        serviceCompanyId,
+      );
+      getResponseFieldsBySerId(service.ServiceID)
+        .then((data) => {
           console.log("[Documents] getResponseFields API response:", data);
           // Flatten all fields from all results
           const allFields = (data.results || []).flatMap((r) => r.fields || []);
@@ -270,21 +246,21 @@ export default function ServiceSelection() {
             );
           } else if (activeTab === "Task") {
             verified = allFields.filter((f) => f.verify === 1);
+          } else {
+            verified = allFields.filter((f) => f.verify === 0);
           }
           setVerifiedFields(verified);
-        } catch (err) {
+          setLoadingDocuments(false);
+        })
+        .catch((err) => {
           console.error("[Documents] getResponseFields API error:", err);
           setDocumentsError("Failed to fetch verified fields.");
-        } finally {
           setLoadingDocuments(false);
-        }
-      };
-      fetchResponseFields();
+        });
     } else {
-      console.log("outside if");
       setVerifiedFields([]);
     }
-  }, [activeTab, selectedService, selectedserviceid, companyId]);
+  }, [activeTab, selectedService]);
   useEffect(() => {
     const fetchFields = async () => {
       console.log("DDDDD", activeTab);
@@ -313,27 +289,23 @@ export default function ServiceSelection() {
       selectedService &&
       selectedService.ServiceDetailID
     ) {
-      const fetchDeliverables = async () => {
-        setLoadingDeliverables(true);
-        setDeliverablesError(null);
-        console.log(
-          "[Deliverables] Fetching for ServiceDetailID:",
-          selectedService.ServiceDetailID,
-        );
-        try {
-          const data = await getServiceDeliverablesByServiceDetailId(
-            selectedService.ServiceDetailID,
-          );
+      setLoadingDeliverables(true);
+      setDeliverablesError(null);
+      console.log(
+        "[Deliverables] Fetching for ServiceDetailID:",
+        selectedService.ServiceDetailID,
+      );
+      getServiceDeliverablesByServiceDetailId(selectedService.ServiceDetailID)
+        .then((data) => {
           console.log("[Deliverables] API response:", data);
           setServiceDeliverables(data);
-        } catch (err) {
+          setLoadingDeliverables(false);
+        })
+        .catch((err) => {
           console.error("[Deliverables] API error:", err);
           setDeliverablesError("Failed to fetch deliverables.");
-        } finally {
           setLoadingDeliverables(false);
-        }
-      };
-      fetchDeliverables();
+        });
     } else if (activeTab === "Deliverables") {
       setServiceDeliverables(null);
     }
@@ -387,7 +359,6 @@ export default function ServiceSelection() {
       // Handle form submission logic here
       onBack();
     };
-  
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-8 mb-8">
