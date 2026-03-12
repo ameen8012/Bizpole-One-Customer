@@ -59,6 +59,7 @@ const OrderDetailView = () => {
                     setOrder({
                         ...apiData.order,
                         ServiceDetails: apiData.services || [],
+                        quote: apiData.quote || {},
                         totals: apiData.totals || {}
                     });
                 }
@@ -168,6 +169,7 @@ const OrderDetailView = () => {
             }
         }
 
+
         const doc = new jsPDF();
         doc.setFillColor(255, 193, 7);
         doc.rect(0, 0, 210, 40, 'F');
@@ -264,6 +266,10 @@ const OrderDetailView = () => {
         );
     }
 
+
+    console.log("Full Data:", order);
+
+
     if (!order) {
         return (
             <div className="p-12 text-center">
@@ -328,25 +334,24 @@ const OrderDetailView = () => {
                         <InfoCard icon={<FileText className="w-4 h-4" />} title="Basic Information">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
                                 <DataItem label="Order ID" value={order.OrderCodeId} />
-                                <DataItem label="Order Date" value={order.OrderCreatedAt ? format(new Date(order.OrderCreatedAt), 'dd MMM yyyy HH:mm:ss') : '--'} />
+                                <DataItem label="Order Date" value={order.quote?.RealOrderCreatedAt ? format(new Date(order.quote?.RealOrderCreatedAt), 'dd MMM yyyy HH:mm:ss') : '--'} />
                                 <DataItem label="Order Status" value={order.OrderStatus || 'pending'} />
                                 <DataItem label="Order Source" value={order.SourceOfSale || 'Associate'} />
                                 <DataItem label="Company Name" value={order.CompanyName} isBold />
                                 <DataItem label="Customer Name" value={order.CustomerName} isBold />
                                 <DataItem label="Order CRE" value={order.QuoteCRE_EmployeeName || 'admin'} />
-                                <DataItem label="Connected Quote" value={order.QuoteIDCode || '-'} />
                             </div>
                         </InfoCard>
 
                         {/* 2. Financial Summary */}
                         <InfoCard icon={<IndianRupee className="w-4 h-4" />} title="Pricing Information">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                                <PriceItem label="Professional Fee" value={order.totals?.ProfessionalFee || 0} />
+                                {/* <PriceItem label="Professional Fee" value={order.totals?.ProfessionalFee || 0} />
                                 <PriceItem label="Vendor Fee" value={order.totals?.VendorFee || 0} />
                                 <PriceItem label="Contractor Fee" value={order.totals?.ContractorFee || 0} />
                                 <PriceItem label="Govt. Fee" value={order.totals?.GovFee || 0} />
                                 <PriceItem label="GST Amount" value={order.totals?.GST || 0} />
-                                <PriceItem label="Discount Applied" value={order.Discount || 0} />
+                                <PriceItem label="Discount Applied" value={order.Discount || 0} /> */}
                                 <PriceItem label="Order Value" value={order.TotalAmount || 0} isTotal />
                                 <PriceItem label="Amount Received" value={order.ReceivedAmount || 0} />
                                 <PriceItem label="Amount Pending" value={order.PendingAmount || 0} />
@@ -417,7 +422,7 @@ const OrderDetailView = () => {
                                             <th className="px-4 py-4">Transaction ID</th>
                                             <th className="px-4 py-4">Order ID</th>
                                             <th className="px-4 py-4">Company Name</th>
-                                            <th className="px-4 py-4">Company CIN</th>
+                                            {/* <th className="px-4 py-4">Company CIN</th> */}
                                             <th className="px-4 py-4">Mode</th>
                                             <th className="px-4 py-4">Amount Paid</th>
                                             <th className="px-4 py-4">Receipt Status</th>
@@ -428,7 +433,7 @@ const OrderDetailView = () => {
                                             <th className="px-4 py-4">Initiated By</th>
                                             <th className="px-4 py-4">Initiated On</th>
                                             <th className="px-4 py-4">Payment Link Status</th>
-                                            <th className="px-4 py-4">Payment Link Expiry</th>
+                                            {/* <th className="px-4 py-4">Payment Link Expiry</th> */}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-100">
@@ -444,7 +449,7 @@ const OrderDetailView = () => {
                                                 <td className="px-4 py-3 text-slate-600">{receipt.TransactionID || "-"}</td>
                                                 <td className="px-4 py-3 text-slate-600">{receipt.QuoteCode || receipt.QuoteID || "-"}</td>
                                                 <td className="px-4 py-3 text-slate-700 font-medium">{receipt.CompanyName || "-"}</td>
-                                                <td className="px-4 py-3 text-slate-500">{receipt.CIN || "-"}</td>
+                                                {/* <td className="px-4 py-3 text-slate-500">{receipt.CIN || "-"}</td> */}
                                                 <td className="px-4 py-3 text-slate-600">{receipt.PaymentMethod || "Razorpay"}</td>
                                                 <td className="px-4 py-3 font-bold text-slate-800">₹{parseFloat(receipt.TotalAmount || 0).toFixed(2)}</td>
                                                 <td className="px-4 py-3 text-slate-600 capitalize">{receipt.PaymentStatus || "pending"}</td>
@@ -468,7 +473,7 @@ const OrderDetailView = () => {
                                                     {receipt.CreatedAt ? format(new Date(receipt.CreatedAt), "yyyy-MM-dd HH:mm:ss") : "-"}
                                                 </td>
                                                 <td className="px-4 py-3 text-slate-600">{receipt.PaymentLinkStatus || "Manual"}</td>
-                                                <td className="px-4 py-3 text-slate-500">{receipt.LinkExpiry || "-"}</td>
+                                                {/* <td className="px-4 py-3 text-slate-500">{receipt.LinkExpiry || "-"}</td> */}
                                             </tr>
                                         ))}
                                     </tbody>

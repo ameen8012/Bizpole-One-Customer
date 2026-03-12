@@ -253,10 +253,10 @@ const AssociateReceipts = () => {
                                 <th className="px-4 py-4">Quote ID</th>
                                 <th className="px-4 py-4">Company Name</th>
                                 <th className="px-4 py-4 text-right">Total Amount</th>
-                                <th className="px-4 py-4 text-right">Gov Fee</th>
+                                {/* <th className="px-4 py-4 text-right">Gov Fee</th>
                                 <th className="px-4 py-4 text-right">Vendor Fee</th>
                                 <th className="px-4 py-4 text-right">Contractor Fee</th>
-                                <th className="px-4 py-4 text-right">Professional Fee</th>
+                                <th className="px-4 py-4 text-right">Professional Fee</th> */}
                                 <th className="px-4 py-4">Transaction ID</th>
                                 <th className="px-4 py-4 text-center">Payment Status</th>
                                 <th className="px-4 py-4">Created By</th>
@@ -311,7 +311,7 @@ const AssociateReceipts = () => {
                                             ₹{parseFloat(receipt.TotalAmount || 0).toFixed(2)}
                                         </td>
 
-                                        <td className="px-4 py-4 text-right text-slate-600">
+                                        {/* <td className="px-4 py-4 text-right text-slate-600">
                                             ₹{parseFloat(receipt.GovFee || 0).toFixed(2)}
                                         </td>
 
@@ -327,7 +327,7 @@ const AssociateReceipts = () => {
                                             ₹{parseFloat(
                                                 receipt.ProfessionalFee || receipt.ProfFee || 0
                                             ).toFixed(2)}
-                                        </td>
+                                        </td> */}
 
                                         <td className="px-4 py-4 text-slate-600">
                                             {receipt.TransactionID}

@@ -31,8 +31,8 @@ const DealDetailView = () => {
             try {
                 const response = await DealsApi.getDealById(id);
                 if (response.success) {
-                    console.log("VVVV",response.data);
-                    
+                    console.log("VVVV", response.data);
+
                     setDeal(response.data);
                 } else {
                     setError(response.message || "Failed to fetch deal details");
@@ -106,7 +106,7 @@ const DealDetailView = () => {
                             <Briefcase className="w-6 h-6 text-[#4b49ac]" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900">{deal.name} ({deal.id})</h1>
+                            <h1 className="text-2xl font-bold text-slate-900">{deal.name}</h1>
                             <div className="flex items-center gap-4 mt-1">
                                 <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
                                     Status
@@ -137,7 +137,7 @@ const DealDetailView = () => {
             </div>
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                 {/* Basic Information */}
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm border-t-4 border-t-amber-400">
                     <div className="flex items-center gap-2 mb-6 text-slate-800">
@@ -149,67 +149,31 @@ const DealDetailView = () => {
                             <p className="text-xs text-slate-400 mb-1">Deal Name</p>
                             <p className="text-sm font-medium text-slate-900">{deal.name}</p>
                         </div>
+
                         <div>
                             <p className="text-xs text-slate-400 mb-1">Deal ID</p>
                             <p className="text-sm font-medium text-slate-900">{deal.id}</p>
                         </div>
+
                         <div>
                             <p className="text-xs text-slate-400 mb-1">Status</p>
                             <p className="text-sm font-medium text-slate-900">{deal.status}</p>
                         </div>
+
                         <div>
                             <p className="text-xs text-slate-400 mb-1">Source</p>
-                            <p className="text-sm font-medium text-slate-900">{deal.sourceOfSale || "--"}</p>
+                            <p className="text-sm font-medium text-slate-900">{"Associate"}</p>
                         </div>
+
                         <div>
                             <p className="text-xs text-slate-400 mb-1">Proposed Service</p>
                             <p className="text-sm font-medium text-slate-900">{deal.serviceName || "--"}</p>
                         </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Preferred Language</p>
-                            <p className="text-sm font-medium text-slate-900">{deal.preferredLanguage || "--"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Qualification Status</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Qualification Score</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Qualification Strength</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Package ID</p>
-                            <p className="text-sm font-medium text-slate-900">{deal.packageId || "--"}</p>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Parent Order Information */}
-                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm border-t-4 border-t-amber-400">
-                    <div className="flex items-center gap-2 mb-6 text-slate-800">
-                        <MapPin className="w-5 h-5 text-red-500" />
-                        <h3 className="font-bold text-lg">Parent Order Information</h3>
-                    </div>
-                    <div className="grid grid-cols-2 gap-y-6">
+
                         <div>
                             <p className="text-xs text-slate-400 mb-1">State</p>
                             <p className="text-sm font-medium text-slate-900">{deal.state || "--"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Franchise ID</p>
-                            <p className="text-sm font-medium text-slate-900">{deal.franchiseId || "--"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Employee ID</p>
-                            <p className="text-sm font-medium text-slate-900">{deal.employeeId || "--"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">City</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
                         </div>
                     </div>
                 </div>
@@ -228,14 +192,6 @@ const DealDetailView = () => {
                         <div>
                             <p className="text-xs text-slate-400 mb-1">Email</p>
                             <p className="text-sm font-medium text-slate-900">{deal.email || "--"}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Reference Customer ID</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
-                        </div>
-                        <div>
-                            <p className="text-xs text-slate-400 mb-1">Raw Contact</p>
-                            <p className="text-sm font-medium text-slate-900">--</p>
                         </div>
                     </div>
                 </div>

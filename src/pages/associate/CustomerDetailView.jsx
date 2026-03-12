@@ -172,25 +172,25 @@ const CustomerDetailView = () => {
                 <DetailItem label="First Name" value={customer.FirstName} />
                 <DetailItem label="Last Name" value={customer.LastName || '-'} />
 
-                <DetailItem label="PAN Number" value={customer.PANNumber || '-'} />
-                <DetailItem label="Date of Birth" value={customer.DateOfBirth ? format(new Date(customer.DateOfBirth), 'dd/MM/yyyy') : '-'} />
+                {/* <DetailItem label="PAN Number" value={customer.PANNumber || '-'} /> */}
+                {/* <DetailItem label="Date of Birth" value={customer.DateOfBirth ? format(new Date(customer.DateOfBirth), 'dd/MM/yyyy') : '-'} /> */}
 
-                <DetailItem label="Primary Company" value={customer.PrimaryCompanyName || '-'} />
+                {/* <DetailItem label="Primary Company" value={customer.PrimaryCompanyName || '-'} /> */}
                 <DetailItem label="Preferred Language" value={customer.PreferredLanguage || '-'} />
 
-                <DetailItem label="Customer Category" value={customer.CustomerCategory || '-'} />
+                {/* <DetailItem label="Customer Category" value={customer.CustomerCategory || '-'} /> */}
                 <DetailItem label="Created On" value={customer.CreatedAt ? format(new Date(customer.CreatedAt), 'dd/MM/yyyy, HH:mm:ss') : '-'} />
 
                 <DetailItem label="Updated On" value={customer.UpdatedAt ? format(new Date(customer.UpdatedAt), 'dd/MM/yyyy, HH:mm:ss') : '-'} />
                 <DetailItem label="Mobile" value={customer.Mobile} />
 
-                <DetailItem label="Secondary Mobile" value={customer.SecondaryMobile || '-'} />
+                {/* <DetailItem label="Secondary Mobile" value={customer.SecondaryMobile || '-'} /> */}
                 <DetailItem label="Email" value={customer.Email} />
 
-                <DetailItem label="Secondary Email" value={customer.SecondaryEmail || '-'} />
-                <DetailItem label="Address Line 1" value={customer.AddressLine1 || '-'} />
+                {/* <DetailItem label="Secondary Email" value={customer.SecondaryEmail || '-'} /> */}
+                {/* <DetailItem label="Address Line 1" value={customer.AddressLine1 || '-'} /> */}
 
-                <DetailItem label="Address Line 2" value={customer.AddressLine2 || '-'} />
+                {/* <DetailItem label="Address Line 2" value={customer.AddressLine2 || '-'} /> */}
                 <DetailItem label="Country" value={customer.Country || 'India'} />
 
                 <DetailItem label="State" value={customer.State || '-'} />
@@ -425,10 +425,10 @@ const CompanySummaryRow = ({ companyId }) => {
                 <DetailItem label="Mobile 1" value={companyDetails.CompanyMobile || '-'} />
                 <DetailItem label="Email 1" value={companyDetails.CompanyEmail || '-'} />
 
-                <DetailItem label="Website" value={companyDetails.Website || '-'} />
-                <DetailItem label="Constitution Category" value={companyDetails.ConstitutionCategory || '-'} />
+                {/* <DetailItem label="Website" value={companyDetails.Website || '-'} /> */}
+                {/* <DetailItem label="Constitution Category" value={companyDetails.ConstitutionCategory || '-'} /> */}
 
-                <DetailItem label="Sector" value={companyDetails.Sector || '-'} />
+                {/* <DetailItem label="Sector" value={companyDetails.Sector || '-'} /> */}
                 <DetailItem label="Country" value={companyDetails.Country || 'India'} />
 
                 <DetailItem label="State" value={companyDetails.State || '-'} />

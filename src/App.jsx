@@ -63,6 +63,7 @@ import AssociateProfile from "./pages/AssociateProfile";
 import AssociateDeals from "./pages/associate/AssociateDeals";
 import DealDetailView from "./pages/associate/DealDetailView";
 import AssociateQuotes from "./pages/associate/AssociateQuotes";
+import QuoteDetailView from "./pages/associate/QuoteDetailView";
 import AssociateOrders from "./pages/associate/AssociateOrders";
 import OrderDetailView from "./pages/associate/OrderDetailView";
 import AssociateServices from "./pages/associate/AssociateServices";
@@ -186,6 +187,7 @@ function App() {
               <Route path="deals" element={<AssociateDeals />} />
               <Route path="deals/:id" element={<DealDetailView />} />
               <Route path="quotes" element={<AssociateQuotes />} />
+              <Route path="quotes/:id" element={<QuoteDetailView />} />
               <Route path="orders" element={<AssociateOrders />} />
               <Route path="orders/:id" element={<OrderDetailView />} />
               <Route path="services" element={<AssociateServices />} />

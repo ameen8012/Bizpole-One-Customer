@@ -296,16 +296,15 @@ const AssociateDeals = () => {
                                                 {index + 1}
                                             </td>
 
-                                            <td className="px-6 py-4 text-sm text-slate-400 font-mono tracking-tight">
+                                            <td onClick={() => navigate(`/associate/deals/${deal.id}`)} className=" cursor-pointer hover:text-blue-600 transition-colors px-6 py-4 text-sm text-blue-400 font-mono tracking-tight">
                                                 {deal.DealCode || "--"}
                                             </td>
 
                                             <td className="px-6 py-4">
                                                 <div
-                                                    className="flex items-center gap-2 cursor-pointer"
-                                                    onClick={() => navigate(`/associate/deals/${deal.id}`)}
+                                                    className="flex items-center gap-2 "
                                                 >
-                                                    <span className="text-sm font-bold text-slate-900 hover:text-[#4b49ac] transition-colors">
+                                                    <span className="text-sm font-bold text-slate-900 ">
                                                         {deal.name}
                                                     </span>
                                                 </div>

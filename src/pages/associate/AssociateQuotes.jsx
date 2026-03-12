@@ -405,7 +405,12 @@ const AssociateQuotes = () => {
                                     filteredQuotes.map((quote, index) => (
                                         <tr key={quote.QuoteID} className="hover:bg-slate-50 transition">
                                             <td className="px-4 py-3">{index + 1}</td>
-                                            <td className="px-4 py-3 font-semibold text-slate-700">{quote.QuoteCodeId}</td>
+                                            <td 
+                                                className="px-4 py-3 font-semibold text-[#4b49ac] hover:underline cursor-pointer"
+                                                onClick={() => navigate(`/associate/quotes/${quote.QuoteID}`)}
+                                            >
+                                                {quote.QuoteCodeId}
+                                            </td>
                                             <td className="px-4 py-3">{format(new Date(quote.QuoteDate), "dd/MM/yyyy")}</td>
                                             <td className="px-4 py-3 text-blue-600 underline cursor-pointer">{quote.CompanyName}</td>
                                             <td className="px-4 py-3 text-blue-600 underline cursor-pointer">{quote.CustomerName}</td>

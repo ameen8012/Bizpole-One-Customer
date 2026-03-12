@@ -263,16 +263,16 @@ const ServiceDetailView = () => {
 
                         <InfoCard icon={<PieChart className="w-4 h-4" />} title="Activity Collectables and Deliverables">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
-                                <PriceItem label="Contractor Fee" value={service.ContractorFee || 0} />
-                                <PriceItem label="Professional Fee" value={service.ProfessionalFee || service.ProfFee || 0} />
+                                {/* <PriceItem label="Contractor Fee" value={service.ContractorFee || 0} /> */}
+                                {/* <PriceItem label="Professional Fee" value={service.ProfessionalFee || service.ProfFee || 0} />
                                 <PriceItem label="Vendor Fee" value={service.VendorFee || 0} />
                                 <PriceItem label="Govt. Fee" value={service.GovtFee || 0} />
                                 <PriceItem label="GST" value={service.GstAmount || service.GST || 0} />
                                 <PriceItem label="CGST %" value={`${service.CGST || '9'}%`} isPercent />
                                 <PriceItem label="SGST %" value={`${service.SGST || '9'}%`} isPercent />
-                                <PriceItem label="IGST %" value={`${service.IGST || '0.00'}%`} isPercent />
+                                <PriceItem label="IGST %" value={`${service.IGST || '0.00'}%`} isPercent /> */}
                                 <PriceItem label="Discount Received" value={service.Discount || 0} />
-                                <PriceItem label="Rounding" value={service.Rounding || 0} />
+                                {/* <PriceItem label="Rounding" value={service.Rounding || 0} /> */}
                                 <PriceItem label="Total Service Value" value={service.Total || 0} isTotal />
                             </div>
                         </InfoCard>

@@ -179,14 +179,14 @@ const AssociateOrders = () => {
                                 <th className="px-4 py-4">Primary Customer</th>
                                 <th className="px-4 py-4">Order Status</th>
                                 <th className="px-4 py-4 text-center">Ageing (Days)</th>
-                                <th className="px-4 py-4 text-right">Professional Fee</th>
+                                {/* <th className="px-4 py-4 text-right">Professional Fee</th>
                                 <th className="px-4 py-4 text-right">Contractor Fee</th>
                                 <th className="px-4 py-4 text-right">Vendor Fee</th>
                                 <th className="px-4 py-4 text-right">Govt Fee</th>
                                 <th className="px-4 py-4 text-right">CGST %</th>
                                 <th className="px-4 py-4 text-right">SGST %</th>
                                 <th className="px-4 py-4 text-right">IGST %</th>
-                                <th className="px-4 py-4 text-right">Discount</th>
+                                <th className="px-4 py-4 text-right">Discount</th> */}
                                 <th className="px-4 py-4 text-right font-bold">Amount Paid</th>
                                 <th className="px-4 py-4 text-center">Activation</th>
                                 <th className="px-4 py-4">Order Type</th>
@@ -265,7 +265,7 @@ const AssociateOrders = () => {
                                                 {getAgeing(order.OrderCreatedAt)}
                                             </td>
 
-                                            <td className="px-4 py-4 text-right text-slate-600">
+                                            {/* <td className="px-4 py-4 text-right text-slate-600">
                                                 ₹{fees.prof.toLocaleString()}
                                             </td>
 
@@ -295,7 +295,7 @@ const AssociateOrders = () => {
 
                                             <td className="px-4 py-4 text-right text-red-500">
                                                 ₹{(order.Discount || 0).toLocaleString()}
-                                            </td>
+                                            </td> */}
 
                                             <td className="px-4 py-4 text-right font-bold text-slate-800">
                                                 ₹{(order.ReceivedAmount || 0).toLocaleString()}
