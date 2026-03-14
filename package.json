@@ -5,8 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run check-unused && vite build",
     "lint": "eslint .",
+    "check-unused": "eslint .",
+    "fix-unused": "eslint . --fix",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^16.3.0",
     "vite": "^7.1.2"
   }
