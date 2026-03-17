@@ -1,5 +1,5 @@
 import axiosInstance from "../axiosInstance";
-import { getSecureItem } from "../../utils/secureStorage";
+import { getSecureItem, setSecureItem } from "../../utils/secureStorage";
 
 /**
  * List orders with filters and pagination
@@ -73,9 +73,10 @@ export const getCompanyIdFromStorage = () => {
       }
     }
     // Fallback: try from user object
-    let userDataRaw = getSecureItem("user" || "partnerUser");
+    let userDataRaw = getSecureItem("user") || getSecureItem("partnerUser");
     if (!userDataRaw) {
-      userDataRaw = window.localStorage.getItem("user" || "partnerUser") || window.sessionStorage.getItem("user" || "partnerUser");
+      userDataRaw = window.localStorage.getItem("user") || window.localStorage.getItem("partnerUser") ||
+        window.sessionStorage.getItem("user") || window.sessionStorage.getItem("partnerUser");
     }
     const userData = userDataRaw && typeof userDataRaw === "string" ? JSON.parse(userDataRaw) : userDataRaw;
     if (userData && userData.Companies && userData.Companies.length > 0) {

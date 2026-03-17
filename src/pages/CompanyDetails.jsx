@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { 
-  Building2, Mail, Phone, MapPin, Globe, FileText, Users, 
-  Calendar, CheckCircle, XCircle, ChevronRight, ArrowLeftRight,
-  Shield, Award, Briefcase, CreditCard, BarChart3, Settings
+import { useEffect, useState } from "react";
+import {
+  Building2, Mail, Phone, MapPin, Globe, FileText, Users,
+  CheckCircle, XCircle, ChevronRight, ArrowLeftRight,
+  Shield, Briefcase, Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCompanyDetails } from "../api/CompanyApi";
 import { getSecureItem, setSecureItem } from "../utils/secureStorage";
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const CompanyDetails = () => {
@@ -43,11 +43,11 @@ const CompanyDetails = () => {
   };
 
   const cardHoverVariants = {
-    rest: { 
+    rest: {
       y: 0,
       boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
     },
-    hover: { 
+    hover: {
       y: -8,
       boxShadow: "0 20px 25px -5px rgba(251, 191, 36, 0.2), 0 10px 10px -5px rgba(251, 191, 36, 0.04)",
       transition: {
@@ -145,11 +145,10 @@ const CompanyDetails = () => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex items-center justify-center gap-3 px-6 py-4 rounded-full text-sm font-semibold transition-all duration-300 ${
-        isActive
-          ? "bg-yellow-400 text-white shadow-lg shadow-yellow-400/30"
-          : "bg-white text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 border-2 border-yellow-100"
-      }`}
+      className={`flex items-center justify-center gap-3 px-6 py-4 rounded-full text-sm font-semibold transition-all duration-300 ${isActive
+        ? "bg-yellow-400 text-white shadow-lg shadow-yellow-400/30"
+        : "bg-white text-gray-600 hover:text-yellow-600 hover:bg-yellow-50 border-2 border-yellow-100"
+        }`}
     >
       {Icon && <Icon className="w-5 h-5" />}
       {label}
@@ -219,7 +218,7 @@ const CompanyDetails = () => {
         className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-50 p-4 md:p-6 lg:p-8"
       >
         <ToastContainer position="top-right" autoClose={3000} />
-        
+
         <div className="max-w-7xl mx-auto">
           {/* Header with Company Switcher */}
           <motion.div
@@ -242,25 +241,24 @@ const CompanyDetails = () => {
                     {company?.BusinessName || "Company Name"}
                   </h1>
                   <div className="flex flex-wrap items-center gap-3">
-                    <motion.span 
+                    <motion.span
                       whileHover={{ scale: 1.05 }}
                       className="px-4 py-2 bg-yellow-400 text-white rounded-full text-sm font-semibold shadow-md"
                     >
                       {company?.ConstitutionCategory || "N/A"}
                     </motion.span>
-                    <motion.span 
+                    <motion.span
                       whileHover={{ scale: 1.05 }}
                       className="px-4 py-2 bg-white text-yellow-600 rounded-full text-sm font-semibold border-2 border-yellow-400"
                     >
                       {company?.Sector || "N/A"}
                     </motion.span>
-                    <motion.span 
+                    <motion.span
                       whileHover={{ scale: 1.05 }}
-                      className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                        company?.IsActive === 1 
-                          ? 'bg-green-100 text-green-700 border-2 border-green-300' 
-                          : 'bg-red-100 text-red-700 border-2 border-red-300'
-                      }`}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold ${company?.IsActive === 1
+                        ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                        : 'bg-red-100 text-red-700 border-2 border-red-300'
+                        }`}
                     >
                       {company?.IsActive === 1 ? "Active" : "Inactive"}
                     </motion.span>
@@ -449,10 +447,10 @@ const CompanyDetails = () => {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900">Director Information</h2>
                   </div>
-                  
+
                   {company?.Customers?.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {company.Customers.map((customer, index) => (
+                      {company.Customers.map((customer) => (
                         <motion.div
                           key={customer.CustomerID}
                           variants={itemVariants}
@@ -494,7 +492,7 @@ const CompanyDetails = () => {
                       ))}
                     </div>
                   ) : (
-                    <motion.p 
+                    <motion.p
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       className="text-center text-gray-600 py-12"
@@ -518,7 +516,7 @@ const CompanyDetails = () => {
                     </div>
                     <h2 className="text-2xl font-bold text-gray-900">Legal & Compliance Details</h2>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {Object.entries(company.registrationStatus).map(([key, value]) => (
                       <motion.div

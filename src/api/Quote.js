@@ -6,17 +6,16 @@ import { setSecureItem, getSecureItem } from "../utils/secureStorage";
 export const upsertQuote = async (plan) => {
   console.log("QUOTE DATA:", { plan });
 
-  try {
-    let user = null;
-    let agentId = null;
-    let agentName = "";
-    let franchiseeId = null;
-    let email = "";
-    let SelectedCompany = null;
+  let user = null;
+  let agentId = null;
+  let agentName = "";
+  let franchiseeId = null;
+  let email = "";
+  let SelectedCompany = null;
 
     // 1) Load user safely
     try {
-      const rawUser = getSecureItem("user" || "partnerUser");
+      const rawUser = getSecureItem("user") || getSecureItem("partnerUser");
       user =
         rawUser && typeof rawUser === "string"
           ? JSON.parse(rawUser)
@@ -93,10 +92,8 @@ export const upsertQuote = async (plan) => {
       IsIndividual: isIndividual ? 1 : 0,
       IsMonthly: isIndividual ? 0 : (plan.IsMonthly || 0),
     is_manual : 0,
-    PaymentType: 0,
       QuoteStatus: plan.QuoteStatus || "Draft",
       IsDirect: plan.IsDirect !== undefined ? plan.IsDirect : 1,
-      PaymentType: plan.PaymentType || 0,
       EmployeeID: plan.EmployeeID || agentId || 9,
       StateService: plan.StateService || SelectedCompany?.State || "",
     };
@@ -167,7 +164,7 @@ export const upsertQuote = async (plan) => {
     // 6) Update stored user quotes (same as before)
     if (res.data?.Quotes && Array.isArray(res.data.Quotes)) {
       try {
-        const rawUser = getSecureItem("user" || "partnerUser");
+        const rawUser = getSecureItem("user") || getSecureItem("partnerUser");
         const storedUser =
           typeof rawUser === "string"
             ? JSON.parse(rawUser)
@@ -191,8 +188,5 @@ export const upsertQuote = async (plan) => {
       }
     }
 
-    return res.data;
-  } catch (err) {
-    throw err;
-  }
+  return res.data;
 };

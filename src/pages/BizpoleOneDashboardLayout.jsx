@@ -3,9 +3,7 @@ import {
   LayoutDashboard,
   ShoppingBag,
   ListChecks,
-  MessageCircle,
   CreditCard,
-  Settings,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -54,10 +52,9 @@ const BizpoleOneDashboardLayout = () => {
                   to="/dashboard/bizpoleone"
                   end
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
-                      isActive
-                        ? "bg-[#FFC42A] text-white shadow-inner"
-                        : "text-gray-600 hover:bg-gray-50"
+                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${isActive
+                      ? "bg-[#FFC42A] text-white shadow-inner"
+                      : "text-gray-600 hover:bg-gray-50"
                     }`
                   }
                 >
@@ -91,18 +88,16 @@ const BizpoleOneDashboardLayout = () => {
                 {/* Submenu: show if expanded, or if collapsed and open (on any device) */}
                 {ordersOpen && (
                   <ul
-                    className={`mt-1 space-y-1 text-sm ${
-                      isCollapsed ? "ml-2" : "ml-10"
-                    }`}
+                    className={`mt-1 space-y-1 text-sm ${isCollapsed ? "ml-2" : "ml-10"
+                      }`}
                   >
                     <li>
                       <NavLink
                         to="/dashboard/bizpoleone/package"
                         className={({ isActive }) =>
-                          `flex items-center gap-2 px-2 py-2 rounded transition-all ${
-                            isActive
-                              ? "bg-[#FFE9A7] text-yellow-700 font-semibold shadow"
-                              : "text-gray-500 hover:bg-[#FFF5D1] hover:text-yellow-700"
+                          `flex items-center gap-2 px-2 py-2 rounded transition-all ${isActive
+                            ? "bg-[#FFE9A7] text-yellow-700 font-semibold shadow"
+                            : "text-gray-500 hover:bg-[#FFF5D1] hover:text-yellow-700"
                           }`
                         }
                         onClick={() => isMobile && setIsCollapsed(true)}
@@ -115,10 +110,9 @@ const BizpoleOneDashboardLayout = () => {
                       <NavLink
                         to="/dashboard/bizpoleone/individual"
                         className={({ isActive }) =>
-                          `flex items-center gap-2 px-2 py-2 rounded transition-all ${
-                            isActive
-                              ? "bg-[#FFE9A7] text-yellow-700 font-semibold shadow"
-                              : "text-gray-500 hover:bg-[#FFF5D1] hover:text-yellow-700"
+                          `flex items-center gap-2 px-2 py-2 rounded transition-all ${isActive
+                            ? "bg-[#FFE9A7] text-yellow-700 font-semibold shadow"
+                            : "text-gray-500 hover:bg-[#FFF5D1] hover:text-yellow-700"
                           }`
                         }
                         onClick={() => isMobile && setIsCollapsed(true)}
@@ -136,10 +130,9 @@ const BizpoleOneDashboardLayout = () => {
                 <NavLink
                   to="/dashboard/bizpoleone/tasks"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
-                      isActive
-                        ? "bg-[#FFC42A] text-white shadow-inner"
-                        : "text-gray-600 hover:bg-gray-50"
+                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${isActive
+                      ? "bg-[#FFC42A] text-white shadow-inner"
+                      : "text-gray-600 hover:bg-gray-50"
                     }`
                   }
                 >
@@ -170,10 +163,9 @@ const BizpoleOneDashboardLayout = () => {
                 <NavLink
                   to="/dashboard/bizpoleone/pricing"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
-                      isActive
-                        ? "bg-[#FFC42A] text-white shadow-inner"
-                        : "text-gray-600 hover:bg-gray-50"
+                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${isActive
+                      ? "bg-[#FFC42A] text-white shadow-inner"
+                      : "text-gray-600 hover:bg-gray-50"
                     }`
                   }
                 >

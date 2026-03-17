@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 const ComplianceCalendar = ({ value = 27.5 }) => {
   const [animatedValue, setAnimatedValue] = useState(0);
@@ -50,17 +50,17 @@ const ComplianceCalendar = ({ value = 27.5 }) => {
   });
 
   // Needle angle based on animated value
-  const needleAngle = gaugeStart + valuePercent * gaugeRange;
+  // const needleAngle = gaugeStart + valuePercent * gaugeRange;
 
   return (
-  <div className="flex flex-col items-center justify-start w-full max-w-xl mx-auto bg-gray-50 rounded-3xl ">
+    <div className="flex flex-col items-center justify-start w-full max-w-xl mx-auto bg-gray-50 rounded-3xl ">
       {/* Title */}
       <h2 className="text-lg font-bold text-gray-600 mb-8">
-       Compliance Score
+        Compliance Score
       </h2>
 
       {/* Gauge */}
-  <div className="relative w-70 h-70  flex flex-col items-center justify-center" style={{ transform: 'rotate(-90deg)' }}>
+      <div className="relative w-70 h-70  flex flex-col items-center justify-center" style={{ transform: 'rotate(-90deg)' }}>
         <svg className="w-full h-full" viewBox="0 0 240 240">
           {/* Segments */}
           {segments.map((segment, index) => {
@@ -96,7 +96,7 @@ const ComplianceCalendar = ({ value = 27.5 }) => {
               // Find the last active segment (green or filled)
               const lastActive = segments.filter(s => s.isActive).slice(-1)[0];
               if (lastActive) {
-                const innerRadius = 0; // center
+                // const innerRadius = 0; // center
                 const outerRadius = 108; // same as segment outer
                 const angleRad = (lastActive.angle * Math.PI) / 180;
                 const x2 = 120 + outerRadius * Math.cos(angleRad);

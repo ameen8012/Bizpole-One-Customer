@@ -227,7 +227,7 @@ const PartnerSignupModal = ({ isOpen, onClose, onSwitchToLogin }) => {
                 setOtpValues(["", "", "", ""]);
                 setErrors({});
             } catch (err) {
-                setErrors({ api: "Failed to resend OTP" });
+                setErrors({ api: "Failed to resend OTP" }, err);
             } finally {
                 setIsSubmitting(false);
             }

@@ -8,8 +8,6 @@ import {
   Folder,
   Briefcase,
   MessageSquare,
-  HelpCircle,
-  Send,
   Bell,
   Menu,
   X,
@@ -132,11 +130,10 @@ const ProfileLayout = () => {
                 {companies.map((company) => (
                   <button
                     key={company.CompanyID || company.BusinessName}
-                    className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${
-                      selectedCompany === (company.BusinessName || company.CompanyName)
+                    className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${selectedCompany === (company.BusinessName || company.CompanyName)
                         ? "bg-yellow-50 font-bold"
                         : ""
-                    }`}
+                      }`}
                     onClick={() => {
                       setSelectedCompany(company.BusinessName || company.CompanyName || "");
                       setSecureItem(
@@ -231,8 +228,7 @@ const ProfileLayout = () => {
                 to={path}
                 end={name === "Profile"}
                 className={({ isActive }) =>
-                  `flex flex-col items-center justify-center rounded-xl border p-4 text-sm font-medium transition ${
-                    isActive ? "bg-yellow-50 border-yellow-400 text-yellow-600" : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-100"
+                  `flex flex-col items-center justify-center rounded-xl border p-4 text-sm font-medium transition ${isActive ? "bg-yellow-50 border-yellow-400 text-yellow-600" : "bg-gray-50 border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-100"
                   }`
                 }
               >
@@ -246,12 +242,12 @@ const ProfileLayout = () => {
         {/* Bottom Buttons */}
         <div className="p-6 space-y-4">
           {/* Back to Dashboard Button */}
-          <button 
+          <button
             onClick={handleBackToDashboard}
             className="flex w-full items-center justify-between rounded-lg bg-amber-500 hover:bg-amber-600 px-4 py-3 text-white font-medium transition duration-200 shadow-md hover:shadow-lg"
           >
             <span className="flex items-center gap-2">
-              <ArrowLeft size={16} /> 
+              <ArrowLeft size={16} />
               Back to Dashboard
             </span>
 

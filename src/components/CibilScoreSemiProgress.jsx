@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 
 const CibilScoreSemiProgress = ({ score, size = 120, strokeWidth = 8 }) => {
@@ -36,9 +35,8 @@ const CibilScoreSemiProgress = ({ score, size = 120, strokeWidth = 8 }) => {
 
         {/* Background semi-circle (dotted) */}
         <path
-          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${
-            size - strokeWidth / 2
-          } ${size / 2}`}
+          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2
+            } ${size / 2}`}
           stroke="#E5E7EB"
           strokeWidth={strokeWidth}
           fill="none"
@@ -48,9 +46,8 @@ const CibilScoreSemiProgress = ({ score, size = 120, strokeWidth = 8 }) => {
 
         {/* Animated progress semi-circle */}
         <motion.path
-          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${
-            size - strokeWidth / 2
-          } ${size / 2}`}
+          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2
+            } ${size / 2}`}
           stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth}
           fill="none"

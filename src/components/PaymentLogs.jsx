@@ -1,6 +1,5 @@
 // filepath: /my-react-app/my-react-app/src/components/PaymentLogs.jsx
 import { motion } from "framer-motion";
-import React from "react";
 import {
   FaApplePay,
   FaGooglePay,

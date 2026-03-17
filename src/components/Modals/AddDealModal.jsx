@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown, Loader2, Eye, Phone, PhoneOff, Tag, FileText, CheckCircle, Users, Building2, Search, MapPin, Mail, Globe, Languages, Calendar, Hash, Briefcase } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { X, ChevronDown, Loader2, Eye, Phone, Tag, FileText, CheckCircle, Users, Building2, Search, MapPin, Mail, Globe, Languages, Calendar, Hash, Briefcase } from "lucide-react";
 import locationData from "../../utils/statesAndDistricts.json";
 import DealsApi from "../../api/DealsApi";
 import { getSecureItem } from "../../utils/secureStorage";
@@ -242,7 +241,6 @@ const ServiceDetailsPopup = ({ category, services, onClose }) => {
 
 // ── Main Modal ──────────────────────────────────────────────────────────────
 const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) => {
-    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [availableDistricts, setAvailableDistricts] = useState([]);
@@ -336,7 +334,7 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
                 const d = await r.json();
                 if (d.success) setAssociateCustomersForCompany(d.data || []);
             }
-        } catch (err) { setAssociateCustomersForCompany([]); }
+        } catch (err) { setAssociateCustomersForCompany([]); console.log(err) }
         finally { setIsFetchingCustomers(false); }
     };
 
@@ -346,7 +344,9 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
                 const r = await fetch(`${API_BASE_URL}/service-category?page=1&limit=100`, { headers: { Authorization: `Bearer ${getSecureItem("partnerToken")}` } });
                 const d = await r.json();
                 if (d.success) setServiceCategories(d.data || []);
-            } catch { }
+            } catch (error) {
+                console.error("Error fetching service categories:", error);
+            }
         };
         if (isOpen) fetch_();
     }, [isOpen]);
@@ -494,7 +494,9 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
                 const r = await fetch(`${API_BASE_URL}/states`);
                 const d = await r.json();
                 if (d.success) setAvailableStates(d.data || []);
-            } catch { }
+            } catch (error) {
+                console.error("Error fetching states:", error);
+            }
         };
         if (isOpen) fetch_();
     }, [isOpen]);
@@ -561,7 +563,9 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
                 const lastName = c.LastName || "";
                 setFormData(prev => ({ ...prev, firstName: firstName, lastName: lastName, mobile: c.Mobile || c.mobile || "", email: c.Email || c.email || "", country: c.Country || c.country || "India", pincode: c.PinCode || c.Pincode || c.pincode || "", state: c.State || c.state || "", district: c.District || c.district || "", preferredLanguage: c.PreferredLanguage || c.preferredLanguage || "", communication: c.communication === 1 || c.communication === true || false }));
             }
-        } catch { }
+        } catch (error) {
+            console.error("Error fetching customer details:", error);
+        }
     };
 
     const handleSelectExistingCompany = async (company) => {
@@ -647,7 +651,7 @@ const AddDealModal = ({ isOpen = true, onClose, onSuccess, deal, initialData }) 
         setIsSubmitting(true);
         try {
             const user = getSecureItem("partnerUser") || {};
-            const selectedState = availableStates.find((s) => s.state_name === formData.serviceState);
+            // const selectedState = availableStates.find((s) => s.state_name === formData.serviceState);
             const selectedCategory = serviceCategories.find(c => c.CategoryID === parseInt(formData.serviceCategory));
             let servicesPayload = [];
             if (formData.serviceType === "individual") {

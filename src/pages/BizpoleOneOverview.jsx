@@ -1,5 +1,5 @@
 // src/pages/BizpoleOneOverview.jsx
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -176,11 +176,10 @@ export default function BizpoleOneOverview() {
                       {c.value}
                     </span>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ${
-                        c.up
+                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs ${c.up
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-700"
-                      }`}
+                        }`}
                     >
                       {c.up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                       {c.delta}

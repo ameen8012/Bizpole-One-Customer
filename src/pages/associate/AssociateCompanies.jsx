@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MoreVertical, Search, Filter, ArrowLeft, ArrowRight, Plus, Eye, Pencil, Trash2, X, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { MoreVertical, Search, ArrowLeft, ArrowRight, Plus, Eye, Pencil, Trash2, X, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as DealsApi from '../../api/DealsApi';
 import { getSecureItem } from '../../utils/secureStorage';
@@ -13,7 +13,7 @@ const AssociateCompanies = () => {
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const pageSize = 10;
     const [searchTerm, setSearchTerm] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [openMenuId, setOpenMenuId] = useState(null);
@@ -21,15 +21,17 @@ const AssociateCompanies = () => {
     const [deleteId, setDeleteId] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const fetchCompanies = async () => {
+    const fetchCompanies = useCallback(async () => {
         setLoading(true);
         try {
             const user = getSecureItem("partnerUser") || {};
+
             const result = await DealsApi.listAssociateCompanies({
                 page,
                 limit: pageSize,
                 AssociateID: user.id || null
             });
+
             if (result.success) {
                 setCompanies(result.data);
                 setTotal(result.total);
@@ -41,11 +43,11 @@ const AssociateCompanies = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, pageSize]);
 
     useEffect(() => {
         fetchCompanies();
-    }, [page, pageSize]);
+    }, [fetchCompanies]);
 
     const totalPages = Math.ceil(total / pageSize);
 
@@ -53,6 +55,7 @@ const AssociateCompanies = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold text-gray-800">Companies</h1>
+
                 <div className="flex gap-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -76,6 +79,12 @@ const AssociateCompanies = () => {
                     </button>
                 </div>
             </div>
+
+            {error && (
+                <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+                    {error}
+                </div>
+            )}
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">

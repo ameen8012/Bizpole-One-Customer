@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, Calendar, Hash, Building2, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getSecureItem } from '../../utils/secureStorage';
 import { format, differenceInDays } from 'date-fns';
 import { listOrders } from '../../api/Orders/Order';
@@ -15,7 +15,7 @@ const AssociateServices = () => {
     const [totalOrders, setTotalOrders] = useState(0);
     const pageSize = 10;
 
-    const fetchServices = async () => {
+    const fetchServices = useCallback(async () => {
         setLoading(true);
         try {
             const user = getSecureItem("partnerUser") || {};
@@ -35,8 +35,8 @@ const AssociateServices = () => {
             const response = await listOrders(params);
 
             if (response.success) {
-                // Flatten orders into services
                 const flattened = [];
+
                 response.data.forEach(order => {
                     (order.ServiceDetails || []).forEach(service => {
                         flattened.push({
@@ -57,6 +57,7 @@ const AssociateServices = () => {
                         });
                     });
                 });
+
                 setServices(flattened);
                 setTotalOrders(response.total);
             }
@@ -65,11 +66,11 @@ const AssociateServices = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, filterType, searchTerm]);
 
     useEffect(() => {
         fetchServices();
-    }, [currentPage, filterType]);
+    }, [currentPage, filterType, searchTerm]);
 
     const handleSearch = (e) => {
         if (e.key === 'Enter') {

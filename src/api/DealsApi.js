@@ -1,5 +1,4 @@
 import axiosInstance from "./axiosInstance";
-import { getSecureItem } from "../utils/secureStorage";
 
 /**
  * Convert a lead-like data structure to a deal

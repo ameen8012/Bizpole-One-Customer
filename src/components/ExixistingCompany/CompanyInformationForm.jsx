@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { upsertCompany } from "../../api/CompanyApi";
+import { useState, useEffect } from "react";
 import { getAllStates } from "../../api/States";
 import { assignCustomer } from "../../api/CustomerApi";
 import { setSecureItem } from "../../utils/secureStorage";
@@ -78,14 +77,14 @@ const CompanyInformationForm = ({ onNext }) => {
   // Enhanced assignCustomer function with debouncing
   const handleAssignBlur = () => {
     const { preferredLanguage, commState, commCity } = form;
-    
+
     // Validate required fields for assignment
     if (!preferredLanguage || !commState || !commCity) {
-      setForm((prev) => ({ 
-        ...prev, 
-        employeeId: "", 
-        agentName: "", 
-        franchiseeId: "" 
+      setForm((prev) => ({
+        ...prev,
+        employeeId: "",
+        agentName: "",
+        franchiseeId: ""
       }));
       setAssignError("Please select Language, State, and City to assign an agent.");
       return;
@@ -109,22 +108,22 @@ const CompanyInformationForm = ({ onNext }) => {
           }));
           setAssignError("");
         } else {
-          setForm((prev) => ({ 
-            ...prev, 
-            employeeId: "", 
-            agentName: "", 
-            franchiseeId: "" 
+          setForm((prev) => ({
+            ...prev,
+            employeeId: "",
+            agentName: "",
+            franchiseeId: ""
           }));
           setAssignError("No agent/franchisee found for the selected criteria.");
         }
       })
       .catch((err) => {
         console.error("Error assigning customer:", err);
-        setForm((prev) => ({ 
-          ...prev, 
-          employeeId: "", 
-          agentName: "", 
-          franchiseeId: "" 
+        setForm((prev) => ({
+          ...prev,
+          employeeId: "",
+          agentName: "",
+          franchiseeId: ""
         }));
         setAssignError("Could not assign agent/franchisee. Please try again.");
       })
@@ -134,9 +133,9 @@ const CompanyInformationForm = ({ onNext }) => {
   };
 
   const handleRadio = (name, value) => {
-    setForm((prev) => ({ 
-      ...prev, 
-      [name]: value 
+    setForm((prev) => ({
+      ...prev,
+      [name]: value
     }));
   };
 
@@ -227,7 +226,7 @@ const CompanyInformationForm = ({ onNext }) => {
 
       // Save to secure storage
       await setSecureItem("companyInfo", JSON.stringify(payload));
-      
+
       // Call onNext callback if provided
       if (onNext) {
         onNext();
@@ -296,9 +295,8 @@ const CompanyInformationForm = ({ onNext }) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="e.g. Bizpole"
-                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("businessName") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("businessName") ? "border-red-500" : "border-yellow-400"
+                  }`}
               />
               {hasError("businessName") && (
                 <p className="text-red-500 text-sm mt-1">Business Name is required</p>
@@ -331,9 +329,8 @@ const CompanyInformationForm = ({ onNext }) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="e.g. ABCDE1234F"
-                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("pan") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("pan") ? "border-red-500" : "border-yellow-400"
+                  }`}
               />
               {hasError("pan") && (
                 <p className="text-red-500 text-sm mt-1">PAN is required</p>
@@ -350,9 +347,8 @@ const CompanyInformationForm = ({ onNext }) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="e.g. U72900MH2023PTC123456"
-                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("cin") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("cin") ? "border-red-500" : "border-yellow-400"
+                  }`}
               />
               {hasError("cin") && (
                 <p className="text-red-500 text-sm mt-1">CIN/LLPIN is required</p>
@@ -388,9 +384,8 @@ const CompanyInformationForm = ({ onNext }) => {
                 value={form.preferredLanguage}
                 onChange={handleChange}
                 onBlur={handleAssignBlur}
-                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("preferredLanguage") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("preferredLanguage") ? "border-red-500" : "border-yellow-400"
+                  }`}
               >
                 <option value="">Select Language</option>
                 {languageOptions.map((lang) => (
@@ -495,9 +490,8 @@ const CompanyInformationForm = ({ onNext }) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="Address (House No, Building, Street, Area)*"
-                className={`w-full border-2 rounded-full px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("commAddress1") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("commAddress1") ? "border-red-500" : "border-yellow-400"
+                  }`}
               />
               <input
                 type="text"
@@ -517,9 +511,8 @@ const CompanyInformationForm = ({ onNext }) => {
                   handleAssignBlur();
                 }}
                 placeholder="City/District*"
-                className={`w-full border-2 rounded-full px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                  hasError("commCity") ? "border-red-500" : "border-yellow-400"
-                }`}
+                className={`w-full border-2 rounded-full px-4 py-3 mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("commCity") ? "border-red-500" : "border-yellow-400"
+                  }`}
               />
               {hasError("commCity") && (
                 <p className="text-red-500 text-sm -mt-2 mb-2">City is required</p>
@@ -533,14 +526,13 @@ const CompanyInformationForm = ({ onNext }) => {
                     handleBlur(e);
                     handleAssignBlur();
                   }}
-                  className={`flex-1 border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                    hasError("commState") ? "border-red-500" : "border-yellow-400"
-                  }`}
+                  className={`flex-1 border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("commState") ? "border-red-500" : "border-yellow-400"
+                    }`}
                 >
                   <option value="">Select State*</option>
                   {states.map((state) => (
-                    <option 
-                      key={state._id || state.id || state.state_name} 
+                    <option
+                      key={state._id || state.id || state.state_name}
                       value={state.state_name}
                     >
                       {state.state_name}
@@ -554,9 +546,8 @@ const CompanyInformationForm = ({ onNext }) => {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   placeholder="Pincode*"
-                  className={`flex-1 border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                    hasError("commPincode") ? "border-red-500" : "border-yellow-400"
-                  }`}
+                  className={`flex-1 border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError("commPincode") ? "border-red-500" : "border-yellow-400"
+                    }`}
                 />
               </div>
               <div className="flex gap-4 mt-2">
@@ -595,9 +586,9 @@ const CompanyInformationForm = ({ onNext }) => {
 
         {/* Bottom Buttons */}
         <div className="flex flex-col md:flex-row items-center justify-between mt-8 md:mt-12 max-w-6xl mx-auto gap-6 md:gap-0">
-          <button 
-            className="w-12 h-12 flex items-center justify-center border-2 border-yellow-400 rounded-full text-yellow-500 text-xl hover:bg-yellow-100 transition" 
-            type="button" 
+          <button
+            className="w-12 h-12 flex items-center justify-center border-2 border-yellow-400 rounded-full text-yellow-500 text-xl hover:bg-yellow-100 transition"
+            type="button"
             disabled={loading}
           >
             ←
@@ -623,7 +614,7 @@ const CompanyInformationForm = ({ onNext }) => {
             </button>
           </div>
         </div>
-        
+
         {/* Global Error */}
         {error && (
           <div className="text-red-500 text-center mt-4 p-3 bg-red-50 rounded-xl">

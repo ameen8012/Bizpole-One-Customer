@@ -1,4 +1,3 @@
-import React from 'react';
 import { ChevronLeft, ChevronRight, Plus, ArrowDown, FileText, Calendar } from 'lucide-react';
 
 const ProfileEvents = () => {
@@ -65,7 +64,7 @@ const ProfileEvents = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-semibold text-gray-900">Upcoming Events</h1>
-          <button           className=" py-3.5 bg-yellow-500 cursor-pointer text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors shadow-md px-4 py-2 rounded-lg flex items-center gap-2 font-medium">
+          <button className=" py-3.5 bg-yellow-500 cursor-pointer text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-amber-600 transition-colors shadow-md px-4 py-2 rounded-lg flex items-center gap-2 font-medium">
             <Plus className="w-4 h-4" />
             Followups
           </button>

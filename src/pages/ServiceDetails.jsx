@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getServiceById, getServicePrice } from "../api/ServicesApi";
 import { upsertQuote } from "../api/Quote";
@@ -22,8 +22,6 @@ import {
   FaFolderOpen,
   FaCogs,
   FaRupeeSign,
-  FaWhatsapp,
-  FaHeadset,
   FaTimes,
   FaPlus,
   FaCheck
@@ -63,7 +61,7 @@ const ServiceDetails = () => {
         const res = await getServiceById({ ServiceId: SERVICE_ID });
         setService(res?.data || null);
       } catch (err) {
-        setError("Failed to fetch service details.");
+        setError("Failed to fetch service details.", err);
       } finally {
         setLoading(false);
       }
@@ -106,22 +104,22 @@ const ServiceDetails = () => {
   const benefits = service?.Features && Array.isArray(service.Features)
     ? service.Features.map(f => f.FeatureName)
     : [
-        "Limited Liability Protection",
-        "Separate Legal Entity",
-        "Easy Fund Raising",
-        "Tax Benefits",
-        "Perpetual Succession",
-      ];
+      "Limited Liability Protection",
+      "Separate Legal Entity",
+      "Easy Fund Raising",
+      "Tax Benefits",
+      "Perpetual Succession",
+    ];
 
   // Use Deliverables from API as What's Included
   const whatsIncluded = service?.Deliverables && Array.isArray(service.Deliverables)
     ? service.Deliverables.map(d => d.label)
     : [
-        "Company Name Approval",
-        "MOA & AOA",
-        "Digital Signature",
-        "PAN & TAN",
-      ];
+      "Company Name Approval",
+      "MOA & AOA",
+      "Digital Signature",
+      "PAN & TAN",
+    ];
 
   const requirements = [
     {
@@ -153,7 +151,7 @@ const ServiceDetails = () => {
   ];
 
   const isSelected = !!cart[service?.ServiceID];
-  
+
   const handleAddToSelection = () => {
     if (!service?.ServiceID) return;
     // If price is not available, use a default object
@@ -263,7 +261,7 @@ const ServiceDetails = () => {
       await upsertQuote(payload);
       navigate("/dashboard/bizpoleone");
     } catch (err) {
-      alert("Failed to create quote. Please try again.");
+      alert("Failed to create quote. Please try again.", err);
     } finally {
       setQuoteLoading(false);
     }
@@ -485,7 +483,7 @@ const ServiceDetails = () => {
                         <span>Call Us</span>
                       </motion.a>
 
-                     
+
 
                       <motion.a
                         whileHover={{ scale: 1.02 }}
@@ -498,7 +496,7 @@ const ServiceDetails = () => {
                       </motion.a>
                     </div>
 
-                  
+
                   </div>
                 </div>
               </div>
@@ -562,11 +560,10 @@ const ServiceDetails = () => {
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                        activeTab === tab.id
-                          ? "bg-white text-gray-900 shadow-sm"
-                          : "bg-yellow-200/60 text-gray-700 hover:bg-yellow-100"
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${activeTab === tab.id
+                        ? "bg-white text-gray-900 shadow-sm"
+                        : "bg-yellow-200/60 text-gray-700 hover:bg-yellow-100"
+                        }`}
                     >
                       {tab.icon}
                       {tab.label}
@@ -672,7 +669,7 @@ const ServiceDetails = () => {
                     <p className="text-sm text-gray-600 mb-4">
                       Please select your state to get accurate pricing for this service.
                     </p>
-                    
+
                     <form onSubmit={(e) => {
                       e.preventDefault();
                       if (selectedStateForModal) {

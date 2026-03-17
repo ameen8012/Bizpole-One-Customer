@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Clock, X } from 'lucide-react';
 
 const ModernCalendar = () => {
@@ -68,23 +68,23 @@ const ModernCalendar = () => {
     const startingDayOfWeek = (firstDay.getDay() + 6) % 7; // Monday = 0
 
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(new Date(year, month, day));
     }
-    
+
     return days;
   };
 
   const getEventsForDate = (date) => {
     if (!date) return [];
-    return events.filter(event => 
+    return events.filter(event =>
       event.date.toDateString() === date.toDateString()
     );
   };
@@ -134,7 +134,7 @@ const ModernCalendar = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Calendar</h1>
-          <button 
+          <button
             onClick={() => setShowAddModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-blue-700 transition-colors"
           >
@@ -167,11 +167,10 @@ const ModernCalendar = () => {
               <button
                 key={viewType}
                 onClick={() => setView(viewType)}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  view === viewType
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${view === viewType
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 {viewType.charAt(0).toUpperCase() + viewType.slice(1)}
               </button>
@@ -196,24 +195,22 @@ const ModernCalendar = () => {
           {days.map((date, index) => {
             const dayEvents = getEventsForDate(date);
             const isCurrentDay = isToday(date);
-            
+
             return (
               <div
                 key={index}
-                className={`min-h-32 border-r border-b border-gray-100 last:border-r-0 p-2 ${
-                  !date ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
-                } transition-colors relative`}
+                className={`min-h-32 border-r border-b border-gray-100 last:border-r-0 p-2 ${!date ? 'bg-gray-50' : 'bg-white hover:bg-gray-50'
+                  } transition-colors relative`}
               >
                 {date && (
                   <>
                     {/* Date Number */}
                     <div className="flex justify-between items-start mb-1">
                       <span
-                        className={`text-sm font-medium ${
-                          isCurrentDay
+                        className={`text-sm font-medium ${isCurrentDay
                             ? 'bg-blue-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs'
                             : 'text-gray-900'
-                        }`}
+                          }`}
                       >
                         {date.getDate()}
                       </span>
@@ -259,11 +256,11 @@ const ModernCalendar = () => {
             <div className="space-y-3">
               <div className="flex items-center text-gray-600">
                 <div className="h-4 w-4 bg-gray-400 rounded mr-2"></div>
-                {selectedEvent.date.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
+                {selectedEvent.date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
                 })}
               </div>
               <div className="flex items-center text-gray-600">

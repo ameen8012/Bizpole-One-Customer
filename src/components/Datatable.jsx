@@ -1,16 +1,15 @@
-import React from 'react';
 
 // Modern DataTable component with updated design
-const DataTable = ({ 
-  columns = [], 
-  data = [], 
-  loading, 
-  error, 
-  page, 
-  totalPages, 
-  onPrev, 
-  onNext, 
-  emptyMessage = "No data found." 
+const DataTable = ({
+  columns = [],
+  data = [],
+  loading,
+  error,
+  page,
+  totalPages,
+  onPrev,
+  onNext,
+  emptyMessage = "No data found."
 }) => {
   return (
     <div className="w-full">
@@ -23,7 +22,7 @@ const DataTable = ({
             <thead>
               <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
                 {columns.map((col, index) => (
-                  <th 
+                  <th
                     key={index}
                     className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
                   >
@@ -77,12 +76,12 @@ const DataTable = ({
 
               {/* Data Rows with hover effect */}
               {!loading && !error && data.map((row, rowIndex) => (
-                <tr 
+                <tr
                   key={rowIndex}
                   className="hover:bg-gray-50 transition-colors duration-150"
                 >
                   {columns.map((col, colIndex) => (
-                    <td 
+                    <td
                       key={colIndex}
                       className="px-6 py-4 text-sm text-gray-900"
                     >
@@ -105,8 +104,8 @@ const DataTable = ({
                 disabled={page === 1}
                 className={`
                   inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                  ${page === 1 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  ${page === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 hover:bg-gray-100 hover:shadow-sm border border-gray-300'
                   }
                 `}
@@ -139,8 +138,8 @@ const DataTable = ({
                 disabled={page === totalPages}
                 className={`
                   inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200
-                  ${page === totalPages 
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                  ${page === totalPages
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-white text-gray-700 hover:bg-gray-100 hover:shadow-sm border border-gray-300'
                   }
                 `}

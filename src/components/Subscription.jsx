@@ -21,13 +21,13 @@ const Subscription = () => {
   const { cart } = useContext(CartContext);
   const selectedServiceIds = Object.keys(cart).map(Number);
   const selectedCount = selectedServiceIds.length;
-  const selectedTotal = selectedServiceIds.reduce((sum, sid) => {
-    const item = cart[sid];
-    if (item && item.price && !isNaN(Number(item.price.TotalFee))) {
-      return sum + Number(item.price.TotalFee);
-    }
-    return sum;
-  }, 0);
+  // const selectedTotal = selectedServiceIds.reduce((sum, sid) => {
+  //   const item = cart[sid];
+  //   if (item && item.price && !isNaN(Number(item.price.TotalFee))) {
+  //     return sum + Number(item.price.TotalFee);
+  //   }
+  //   return sum;
+  // }, 0);
 
   // 🔹 Handle quote creation
   const handleQuote = async (plan) => {

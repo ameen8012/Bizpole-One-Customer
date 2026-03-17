@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import AOS from "aos";
@@ -39,7 +39,7 @@ const HeroSection = () => {
     >
       {/* Content */}
       <div className="relative z-10 w-full max-w-6xl mx-auto hero-content">
-        
+
         {/* Animated Heading */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
@@ -61,7 +61,7 @@ const HeroSection = () => {
             a Business, Now Simplified !!
           </span>
         </motion.h1>
-        
+
 
         {/* Subheading */}
         <motion.p
@@ -150,13 +150,13 @@ const HeroSection = () => {
         </motion.h2>
       </div>
 
-      
 
-           <div className="py-6 md:py-12 ">
-             <Suspense fallback={null}>
-               <PaymentLogs />
-             </Suspense>
-           </div>
+
+      <div className="py-6 md:py-12 ">
+        <Suspense fallback={null}>
+          <PaymentLogs />
+        </Suspense>
+      </div>
 
 
     </section>

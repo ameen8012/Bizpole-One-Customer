@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { User, Mail, Phone, Building2, MapPin, FileText, CheckCircle2, Upload, Edit, Download, Share2, Link, X, Plus, UploadCloud, Eye, TrendingUp, Briefcase } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { User, Mail, Phone, MapPin, FileText, CheckCircle2, Upload, Edit, Download, Share2, Link, X, UploadCloud, Eye, TrendingUp, Briefcase } from 'lucide-react';
 import { getSecureItem } from '../utils/secureStorage';
 import axiosInstance from '../api/axiosInstance';
 import { getAssociateById, getAssociateDocuments, uploadAssociateDocuments } from '../api/AssociateApi';
@@ -66,7 +66,7 @@ const AssociateProfile = () => {
 
     useEffect(() => {
         fetchUserData();
-    }, []);
+    }, [user.id]);
 
     const handleEditClick = () => {
         setEditFormData({

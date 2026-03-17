@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CustomerDocApi from '../api/CustomerDocApi';
-import axiosInstance from '../api/axiosInstance';
-import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import { getSecureItem } from "../utils/secureStorage";
 
 const fileTypes = [
   {
@@ -95,12 +94,12 @@ const CustomerFiles = () => {
   };
 
   // Convert Base64 to proper data URL
-  const base64ToDataUrl = (base64String, mimeType = 'image/jpeg') => {
-    if (!base64String) return '';
-    // Remove any existing data URL prefix if present
-    const cleanBase64 = base64String.replace(/^data:image\/\w+;base64,/, '');
-    return `data:${mimeType};base64,${cleanBase64}`;
-  };
+  // const base64ToDataUrl = (base64String, mimeType = 'image/jpeg') => {
+  //   if (!base64String) return '';
+  //   // Remove any existing data URL prefix if present
+  //   const cleanBase64 = base64String.replace(/^data:image\/\w+;base64,/, '');
+  //   return `data:${mimeType};base64,${cleanBase64}`;
+  // };
 
   // Check which documents are already uploaded
   // useEffect(() => {
@@ -139,37 +138,37 @@ const CustomerFiles = () => {
   // }, []);
 
   useEffect(() => {
-  const checkUploadedDocuments = async () => {
-    try {
-      setLoadingDocs(true);
-      const documents = await CustomerDocApi.getUploadedDocuments(customerId);
-      console.log('Fetched documents:', documents);
+    const checkUploadedDocuments = async () => {
+      try {
+        setLoadingDocs(true);
+        const documents = await CustomerDocApi.getUploadedDocuments(customerId);
+        console.log('Fetched documents:', documents);
 
-      const uploadedState = {
-        PAN: !!documents.PAN,
-        ADHAAR: !!documents.ADHAAR,
-        PassportPhoto: !!documents.PassportPhoto
-      };
+        const uploadedState = {
+          PAN: !!documents.PAN,
+          ADHAAR: !!documents.ADHAAR,
+          PassportPhoto: !!documents.PassportPhoto
+        };
 
-      const uploadedData = {
-        PAN: documents.PAN || '',
-        ADHAAR: documents.ADHAAR || '',
-        PassportPhoto: documents.PassportPhoto || ''
-      };
+        const uploadedData = {
+          PAN: documents.PAN || '',
+          ADHAAR: documents.ADHAAR || '',
+          PassportPhoto: documents.PassportPhoto || ''
+        };
 
-      setUploadedDocs(uploadedState);
-      setUploadedDocData(uploadedData);
-    } catch (error) {
-      console.error('Error checking uploaded documents:', error);
-      setUploadedDocs({ PAN: false, ADHAAR: false, PassportPhoto: false });
-      setUploadedDocData({ PAN: '', ADHAAR: '', PassportPhoto: '' });
-    } finally {
-      setLoadingDocs(false);
-    }
-  };
+        setUploadedDocs(uploadedState);
+        setUploadedDocData(uploadedData);
+      } catch (error) {
+        console.error('Error checking uploaded documents:', error);
+        setUploadedDocs({ PAN: false, ADHAAR: false, PassportPhoto: false });
+        setUploadedDocData({ PAN: '', ADHAAR: '', PassportPhoto: '' });
+      } finally {
+        setLoadingDocs(false);
+      }
+    };
 
-  checkUploadedDocuments();
-}, []);
+    checkUploadedDocuments();
+  }, []);
 
   // Upload flow functions
   const handleFileChange = (type, e) => {

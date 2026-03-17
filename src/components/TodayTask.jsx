@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import AOS from "aos";
 import "aos/dist/aos.css";
@@ -27,7 +27,6 @@ const tasks = [
 ];
 
 const TodayTask = () => {
-  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     AOS.init({ duration: 800, easing: "ease-in-out" });

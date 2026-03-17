@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getServiceCategories, getServices, getServicesByCategory, getServicePackages } from '../../api/ServicesApi';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Oval } from 'react-loader-spinner';
 
 const INDIAN_STATES = [
@@ -15,7 +15,6 @@ const INDIAN_STATES = [
 
 
 function ServiceModal({ service, onClose }) {
-    const navigate = useNavigate();
     const [stateSearch, setStateSearch] = useState('');
     const [selectedState, setSelectedState] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -400,6 +399,7 @@ function ExploreServices() {
         }
     }, [searchParams]);
 
+    const { currentPage, limit } = pagination;
 
     useEffect(() => {
         if (categoriesLoading) return;
@@ -413,16 +413,16 @@ function ExploreServices() {
 
                 if (selectedCategory) {
                     const response = await getServicesByCategory(selectedCategory, {
-                        page: pagination.currentPage,
-                        limit: pagination.limit
+                        page: currentPage,
+                        limit: limit
                     });
 
                     servicesData = response.data || [];
                     totalItems = response.total || 0;
                 } else {
                     const data = await getServices({
-                        page: pagination.currentPage,
-                        limit: pagination.limit,
+                        page: currentPage,
+                        limit: limit,
                         filter: searchQuery,
                     });
 
@@ -430,7 +430,7 @@ function ExploreServices() {
                     totalItems = data.pagination?.total || servicesData.length || 0;
                 }
 
-                const totalPages = Math.max(1, Math.ceil(totalItems / pagination.limit));
+                const totalPages = Math.max(1, Math.ceil(totalItems / limit));
 
                 setServices(servicesData);
                 setPagination(prev => ({
@@ -449,7 +449,7 @@ function ExploreServices() {
 
         fetchServices();
 
-    }, [pagination.currentPage, searchQuery, selectedCategory, categoriesLoading]);
+    }, [currentPage, limit, searchQuery, selectedCategory, categoriesLoading]);
 
 
     const handlePageChange = (newPage) => {

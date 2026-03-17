@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard,
@@ -11,11 +11,7 @@ import {
     LogOut,
     Search,
     Bell,
-    ChevronRight,
-    Key,
-    Shield,
     Receipt,
-    FileSpreadsheet
 } from 'lucide-react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { getSecureItem } from '../utils/secureStorage';
@@ -65,7 +61,7 @@ const AssociateLayout = () => {
     const getPageTitle = () => {
         if (location.pathname.includes('dashboard')) return 'Dashboard';
         if (location.pathname.includes('profile')) return 'Profile';
-        const item = sidebarItems.find(item => 
+        const item = sidebarItems.find(item =>
             location.pathname === item.path || location.pathname.startsWith(item.path + '/')
         );
         return item ? item.label : 'Dashboard';

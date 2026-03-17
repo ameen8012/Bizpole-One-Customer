@@ -1,5 +1,5 @@
 import axiosInstance from "./axiosInstance";
-import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import { setSecureItem } from "../utils/secureStorage";
 
 /**
  * Check quote status for multiple quoteIds

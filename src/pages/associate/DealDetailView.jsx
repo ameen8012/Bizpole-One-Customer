@@ -1,22 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
     ArrowLeft,
     ChevronRight,
     Loader2,
     Info,
-    User,
     Phone,
-    Mail,
     MapPin,
     Briefcase,
-    Calendar,
-    Tag,
-    Hash
 } from 'lucide-react';
 import DealsApi from '../../api/DealsApi';
-import { format } from 'date-fns';
 
 const DealDetailView = () => {
     const { id } = useParams();

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { MoreVertical, Search, Filter, ArrowLeft, ArrowRight, X, Loader2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { MoreVertical, Search, ArrowLeft, ArrowRight, X, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as DealsApi from '../../api/DealsApi';
 import { getSecureItem } from '../../utils/secureStorage';
-import { Eye, Pencil, Trash2, Phone, PhoneOff, Users, Plus } from 'lucide-react';
+import { Eye, Pencil, Trash2, Phone, PhoneOff, Plus } from 'lucide-react';
 import AddCustomerModal from '../../components/Modals/AddCustomerModal';
 
 
@@ -14,7 +14,7 @@ const AssociateCustomers = () => {
     const [error, setError] = useState(null);
     const [page, setPage] = useState(1);
     const [total, setTotal] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
+    const pageSize = 10;
     const [searchTerm, setSearchTerm] = useState('');
     const [openMenuId, setOpenMenuId] = useState(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -22,32 +22,36 @@ const AssociateCustomers = () => {
     const [deleteId, setDeleteId] = useState(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
-
-    const fetchCustomers = async () => {
+    const fetchCustomers = useCallback(async () => {
         setLoading(true);
+        setError(null);
+
         try {
             const user = getSecureItem("partnerUser") || {};
+
             const result = await DealsApi.listAssociateCustomers({
                 page,
                 limit: pageSize,
                 AssociateID: user.id || null
             });
+
             if (result.success) {
                 setCustomers(result.data);
                 setTotal(result.total);
             } else {
-                setError(result.message || 'Failed to fetch customers');
+                setError(result.message || "Failed to fetch customers");
             }
+
         } catch (err) {
-            setError(err.message || 'Error connecting to server');
+            setError(err.message || "Error connecting to server");
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, pageSize]);
 
     useEffect(() => {
         fetchCustomers();
-    }, [page, pageSize]);
+    }, [fetchCustomers]);
 
     const totalPages = Math.ceil(total / pageSize);
 
@@ -55,6 +59,12 @@ const AssociateCustomers = () => {
         <div className="p-6 bg-gray-50 min-h-screen">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-semibold text-gray-800">Customers</h1>
+
+                {error && (
+                    <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
                 <div className="flex gap-4">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />

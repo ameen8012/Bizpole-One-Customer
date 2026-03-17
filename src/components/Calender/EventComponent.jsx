@@ -1,12 +1,12 @@
 // src/components/Calendar/EventComponent.jsx
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Clock, Users, FileText, User, Calendar as CalendarIcon, MapPin, Video, Phone } from 'lucide-react';
-import { EVENT_TYPES, MEETING_TYPES } from './constants';
+import { Clock, MapPin, Video, Phone } from 'lucide-react';
+import { MEETING_TYPES } from './constants';
 import { format } from 'date-fns';
 
 const EventComponent = ({ event }) => {
-  const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.MEETING;
+  // const eventType = EVENT_TYPES[event.type] || EVENT_TYPES.MEETING;
   const meetingType = MEETING_TYPES[event.meetingType] || MEETING_TYPES.IN_PERSON;
 
   // Priority-based color
@@ -18,20 +18,20 @@ const EventComponent = ({ event }) => {
   };
 
   // Function to get the appropriate icon based on type
-  const getEventIcon = () => {
-    switch (event.type) {
-      case "MEETING":
-        return <Users size={14} />;
-      case "PRESENTATION":
-        return <FileText size={14} />;
-      case "TEAM":
-        return <User size={14} />;
-      case "PERSONAL":
-        return <CalendarIcon size={14} />;
-      default:
-        return <Users size={14} />;
-    }
-  };
+  // const getEventIcon = () => {
+  //   switch (event.type) {
+  //     case "MEETING":
+  //       return <Users size={14} />;
+  //     case "PRESENTATION":
+  //       return <FileText size={14} />;
+  //     case "TEAM":
+  //       return <User size={14} />;
+  //     case "PERSONAL":
+  //       return <CalendarIcon size={14} />;
+  //     default:
+  //       return <Users size={14} />;
+  //   }
+  // };
 
   // Function to get the appropriate meeting type icon
   const getMeetingTypeIcon = () => {

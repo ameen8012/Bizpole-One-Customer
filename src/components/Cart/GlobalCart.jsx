@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useContext } from "react";
-import { FaShoppingCart, FaTimes } from "react-icons/fa";
+import React, { useState, useContext } from "react";
+import { FaTimes } from "react-icons/fa";
 import { CartContext } from "../../context/CartContext";
 import { upsertQuote } from "../../api/Quote";
 import { getSecureItem } from "../../utils/secureStorage";
@@ -120,7 +120,7 @@ const GlobalCart = () => {
         toast.error("Quote creation failed. Please try again.");
       }
     } catch (err) {
-      toast.error("Failed to create quote. Please try again.");
+      toast.error("Failed to create quote. Please try again.", err);
     }
   };
   return (

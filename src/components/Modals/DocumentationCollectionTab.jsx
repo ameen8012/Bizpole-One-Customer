@@ -1,9 +1,7 @@
-import React from 'react';
 import {
     FileStack, Loader2, Download, Eye,
-    CheckCircle2, AlertCircle, FileText,
+    AlertCircle, FileText,
     Calendar, Hash, Type, Link as LinkIcon,
-    XCircle, Clock
 } from 'lucide-react';
 
 const DocumentCollectionTab = ({ responseFields, loading }) => {
@@ -31,27 +29,27 @@ const DocumentCollectionTab = ({ responseFields, loading }) => {
         }
     };
 
-    const getStatusBadge = (field) => {
-        if (field.verify === 1) {
-            return (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-wider">
-                    <CheckCircle2 className="w-3 h-3" /> Verified
-                </span>
-            );
-        }
-        if (field.reject === 1) {
-            return (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-black uppercase tracking-wider">
-                    <XCircle className="w-3 h-3" /> Rejected
-                </span>
-            );
-        }
-        return (
-            <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black uppercase tracking-wider">
-                <Clock className="w-3 h-3" /> Pending Review
-            </span>
-        );
-    };
+    // const getStatusBadge = (field) => {
+    //     if (field.verify === 1) {
+    //         return (
+    //             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-wider">
+    //                 <CheckCircle2 className="w-3 h-3" /> Verified
+    //             </span>
+    //         );
+    //     }
+    //     if (field.reject === 1) {
+    //         return (
+    //             <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-red-600 border border-red-100 text-[10px] font-black uppercase tracking-wider">
+    //                 <XCircle className="w-3 h-3" /> Rejected
+    //             </span>
+    //         );
+    //     }
+    //     return (
+    //         <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black uppercase tracking-wider">
+    //             <Clock className="w-3 h-3" /> Pending Review
+    //         </span>
+    //     );
+    // };
 
     return (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm animate-in fade-in duration-500 overflow-hidden">

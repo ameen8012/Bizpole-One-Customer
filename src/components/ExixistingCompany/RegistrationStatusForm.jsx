@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { upsertRegistrationStatus } from "../../api/CompanyApi";
+import { useState } from "react";
 
 const RegistrationStatusForm = ({ onNext, onBack }) => {
   const questions = [

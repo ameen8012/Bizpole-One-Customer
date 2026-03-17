@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AddDealModal from '../../components/Modals/AddDealModal';
-import { Plus, Edit2, Trash2, Search, Filter, Loader2, MoreVertical, ExternalLink } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, Filter, Loader2, } from 'lucide-react';
 import DealsApi from '../../api/DealsApi';
 import { getSecureItem } from '../../utils/secureStorage';
 import { format } from 'date-fns';
 import axiosInstance from '../../api/axiosInstance';
-import { upsertQuote } from '../../api/Quote';
 
 const getDealDataFromParams = (search) => {
     try {
@@ -51,7 +50,7 @@ const AssociateDeals = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [creatingQuote, setCreatingQuote] = useState(null); // Track which deal is being converted
     const [editingDeal, setEditingDeal] = useState(null); // Track which deal is being edited
-    const [deletingDeal, setDeletingDeal] = useState(null); // Track which deal is being deleted
+    // const [deletingDeal, setDeletingDeal] = useState(null); // Track which deal is being deleted
     const [companyNames, setCompanyNames] = useState({});
     const [existingQuoteDealIds, setExistingQuoteDealIds] = useState([]);
 
@@ -69,9 +68,50 @@ const AssociateDeals = () => {
     }, [location.search]);
 
 
+    const fetchDeals = useCallback(async () => {
+        setLoading(true);
+        try {
+            const user = getSecureItem("partnerUser") || {};
+            const result = await DealsApi.listDeals({
+                employeeId: user.EmployeeID,
+                franchiseId: user.FranchiseeID,
+                isAssociate: true,
+                AssociateID: user.id || null
+            });
+
+            const AssociateID = user.id || localStorage.getItem("AssociateID");
+
+            const quotesResponse = await axiosInstance.post('/getLatestQuotes', {
+                AssociateID: AssociateID,
+                isAssociate: true
+            });
+
+            const quoteDealIds = (quotesResponse.data?.data || [])
+                .map(q => q.DealID)
+                .filter(Boolean);
+
+            setExistingQuoteDealIds(quoteDealIds);
+
+            if (result.success) {
+                const dealsData = result.data || [];
+                setDeals(dealsData);
+                fetchCompanyNames(dealsData);
+            } else {
+                setError(result.message || "Failed to fetch deals");
+            }
+
+        } catch (err) {
+            console.error("fetchDeals error", err);
+            setError("An error occurred while fetching deals");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+
     useEffect(() => {
         fetchDeals();
-    }, []);
+    }, [fetchDeals]);
 
 
     const fetchCompanyNames = async (dealsList) => {
@@ -98,42 +138,7 @@ const AssociateDeals = () => {
 
 
 
-    const fetchDeals = async () => {
-        setLoading(true);
-        try {
-            const user = getSecureItem("partnerUser") || {};
-            const result = await DealsApi.listDeals({
-                employeeId: user.EmployeeID,
-                franchiseId: user.FranchiseeID,
-                isAssociate: true, // Filter specifically for associate created deals
-                AssociateID: user.id || null
-            });
 
-            // Fetch quotes to check for existing quotes
-            const AssociateID = user.id || localStorage.getItem("AssociateID");
-            const quotesResponse = await axiosInstance.post('/getLatestQuotes', {
-                AssociateID: AssociateID,
-                isAssociate: true
-            });
-            const quoteDealIds = (quotesResponse.data?.data || []).map(q => q.DealID).filter(Boolean);
-            setExistingQuoteDealIds(quoteDealIds);
-
-            if (result.success) {
-                const dealsData = result.data || [];
-                console.log({ dealsData });
-
-                setDeals(dealsData);
-                fetchCompanyNames(dealsData);
-            } else {
-                setError(result.message || "Failed to fetch deals");
-            }
-        } catch (err) {
-            console.error("fetchDeals error", err);
-            setError("An error occurred while fetching deals");
-        } finally {
-            setLoading(false);
-        }
-    }
 
     const handleDealSuccess = () => {
         fetchDeals();

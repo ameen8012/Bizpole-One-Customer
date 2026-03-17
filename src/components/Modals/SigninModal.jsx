@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { loginWithPhone, verifyOtp } from "../../api/AuthApi";
-import { setSecureItem, getSecureItem } from "../../utils/secureStorage";
+import { setSecureItem } from "../../utils/secureStorage";
 
 // Add a mode state for switching between sign-in and sign-up
 
-const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
+const SigninModal = ({ isOpen = true, onClose = () => { } }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState("signin"); // 'signin' or 'signup'
   const [step, setStep] = useState(1);
@@ -93,7 +93,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
           const otp = newOtpValues.join("");
           const tokenData = await verifyOtp(inputValue, otp);
           console.log(tokenData, "token data1");
-          
+
           // Store token and user in localStorage
           if (tokenData && tokenData.token) {
             console.log(tokenData, "token");
@@ -101,9 +101,9 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
             setSignedMessage("Signed in successfully!");
           }
           if (tokenData && tokenData.user) {
-           setSecureItem('user', JSON.stringify(tokenData.user));
+            setSecureItem('user', JSON.stringify(tokenData.user));
           }
-          
+
           setStep(3);
           console.log("Token Data:", tokenData);
           setTimeout(() => {
@@ -131,7 +131,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <motion.div 
+      <motion.div
         ref={modalContentRef}
         className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative overflow-hidden"
         initial={{ scale: 0.9, opacity: 0 }}
@@ -147,7 +147,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
           whileTap={{ scale: 0.9 }}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </motion.button>
 
@@ -279,13 +279,13 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
               >
                 {mode === "signin"
                   ? (<>
-                      We Will send you a one time password <br />
-                      on this <span className="font-bold text-gray-800">Mobile Number</span>
-                    </>)
+                    We Will send you a one time password <br />
+                    on this <span className="font-bold text-gray-800">Mobile Number</span>
+                  </>)
                   : (<>
-                      Please enter your details to sign up. <br />
-                      We will send you an OTP to verify your phone number.
-                    </>)}
+                    Please enter your details to sign up. <br />
+                    We will send you an OTP to verify your phone number.
+                  </>)}
               </motion.p>
 
               <motion.p
@@ -329,7 +329,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.4 }}
             >
-              <motion.h2 
+              <motion.h2
                 className="text-2xl font-bold text-gray-800 mb-2"
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -338,7 +338,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
                 OTP Verification
               </motion.h2>
 
-              <motion.p 
+              <motion.p
                 className="text-center text-gray-600 leading-relaxed"
                 initial={{ y: -10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -352,7 +352,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
               </motion.p>
 
               {/* OTP inputs */}
-              <motion.div 
+              <motion.div
                 className="flex gap-3"
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -377,7 +377,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
               </motion.div>
 
               {/* Timer */}
-              <motion.p 
+              <motion.p
                 className="text-lg font-mono text-gray-600"
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -386,7 +386,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
                 {`00:${timer.toString().padStart(2, "0")}`}
               </motion.p>
 
-              <motion.p 
+              <motion.p
                 className="text-sm text-gray-600"
                 initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -402,7 +402,7 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
               </motion.p>
 
               {/* Back Button */}
-              <motion.div 
+              <motion.div
                 className="relative bg-yellow-400 rounded-full w-20 h-12 cursor-pointer shadow-lg transition-all duration-300 hover:shadow-xl"
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
@@ -413,24 +413,24 @@ const SigninModal = ({ isOpen = true, onClose = () => {} }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <motion.div 
+                <motion.div
                   className="absolute top-1 left-1 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center"
                   animate={{ x: isHovered ? 32 : 0 }}
                   transition={{ type: "spring", damping: 15, stiffness: 200 }}
                 >
-                  <motion.svg 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
+                  <motion.svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
                     fill="none"
                     animate={{ rotate: isHovered ? 0 : 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <path 
-                      d="M5 12h14M12 5l7 7-7 7" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
+                    <path
+                      d="M5 12h14M12 5l7 7-7 7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
                       strokeLinejoin="round"
                     />
                   </motion.svg>

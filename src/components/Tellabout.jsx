@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { assignCustomer, createCustomer } from "../api/CustomerApi";
 import { getAllStates } from "../api/States";
-import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import { setSecureItem } from "../utils/secureStorage";
 const Tellabout = () => {
   // ✅ States hook inside component
   const [states, setStates] = useState([]);
@@ -21,6 +21,7 @@ const Tellabout = () => {
         const data = await getAllStates();
         setStates(data);
       } catch (err) {
+        console.log(err);
         setStates([]);
       }
     };
@@ -226,7 +227,7 @@ const Tellabout = () => {
           });
         })
         .catch((err) => {
-          setAssignError("Could not assign franchisee/agent. Try again.");
+          setAssignError("Could not assign franchisee/agent. Try again.", err);
         })
         .finally(() => setAssignLoading(false));
     }

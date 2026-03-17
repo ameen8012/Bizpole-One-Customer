@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Loader2, Calendar, Hash, Building2, User,
-    Briefcase, Activity, Clock, FileText, IndianRupee,
-    AlertCircle, CheckCircle2, MessageSquare, ListChecks,
-    FolderOpen, Receipt, FileStack, LayoutDashboard, History,
-    PieChart, Target, Download, X, Eye
+    ChevronLeft, Loader2, Activity, FileText, IndianRupee,
+    AlertCircle, ListChecks,
+    FolderOpen, Receipt, FileStack, LayoutDashboard,
+    Download, X,
 } from 'lucide-react';
 import { getOrderById } from '../../api/Orders/Order';
 import { format } from 'date-fns';
-import { listAssociateReceipts, getAssociateReceiptDetails, getInvoicesForService, getReceiptsForOrder } from '../../api/AssociateApi';
-import { getSecureItem } from '../../utils/secureStorage';
+import { getAssociateReceiptDetails, getInvoicesForService, getReceiptsForOrder } from '../../api/AssociateApi';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -76,27 +74,16 @@ const OrderDetailView = () => {
     console.log("WWWW", { receipts });
 
 
-    useEffect(() => {
-        if (activeTab === 'Receipts' && order) {
-            fetchReceipts();
-        }
-
-        if (activeTab === 'Invoice' && order) {
-            fetchInvoices();
-        }
-
-    }, [activeTab, order]);
 
 
-    const fetchReceipts = async () => {
+
+    const fetchReceipts = useCallback(async () => {
         if (!order) return;
+
         setReceiptsLoading(true);
+
         try {
-
-            console.log("Order ID", order);
-
             const response = await getReceiptsForOrder(order.QuoteID);
-            console.log("Order receipts", response);
 
             if (response.success) {
                 setReceipts(response?.payments || []);
@@ -109,20 +96,20 @@ const OrderDetailView = () => {
         } finally {
             setReceiptsLoading(false);
         }
-    };
+
+    }, [order]);
 
 
-    const fetchInvoices = async () => {
+    const fetchInvoices = useCallback(async () => {
         if (!order) return;
 
         setInvoiceLoading(true);
+
         try {
             const response = await getInvoicesForService({
                 quoteId: order.QuoteID,
                 orderId: order.OrderID
             });
-
-            console.log("Invoice API Response:", response);
 
             if (response.success) {
                 setInvoices(response.data || []);
@@ -136,7 +123,27 @@ const OrderDetailView = () => {
         } finally {
             setInvoiceLoading(false);
         }
-    };
+
+    }, [order]);
+
+
+    useEffect(() => {
+        if (!order) return;
+
+        switch (activeTab) {
+            case 'Receipts':
+                fetchReceipts();
+                break;
+
+            case 'Invoice':
+                fetchInvoices();
+                break;
+
+            default:
+                break;
+        }
+
+    }, [activeTab, order, fetchReceipts, fetchInvoices]);
 
 
     const handleViewReceipt = async (paymentId) => {

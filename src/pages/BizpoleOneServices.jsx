@@ -1,12 +1,11 @@
-import React from 'react'
 
 const BizpoleOneServices = () => {
   return (
     <>
-    
-    Services
-    
-    
+
+      Services
+
+
     </>
   )
 }

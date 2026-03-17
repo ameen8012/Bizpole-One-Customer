@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown, Loader2, Search, Building2, Users, Plus, Trash2, CheckCircle, Smartphone, Mail, MapPin, Globe } from "lucide-react";
+import { X, Loader2, Search, Building2, Users, Plus, Trash2, CheckCircle, Smartphone, Mail, Globe } from "lucide-react";
 import locationData from "../../utils/statesAndDistricts.json";
 import DealsApi from "../../api/DealsApi";
 import { getSecureItem } from "../../utils/secureStorage";
@@ -376,34 +376,34 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
 
 
 
-    const handleNewCompanyEntry = () => {
-        setShowCompanySearch(false);
+    // const handleNewCompanyEntry = () => {
+    //     setShowCompanySearch(false);
 
-        setCompanies(prev => [
-            ...prev,
-            {
-                id: Date.now() + Math.random(),
-                name: "",
-                pan: "",
-                gst: "",
-                cin: "",
-                email: "",
-                mobile: "",
-                constitutionCategory: "",
-                sector: "",
-                businessNature: "",
-                website: "",
-                country: "India",
-                state: "",
-                district: "",
-                pincode: "",
-                preferredLanguage: "",
-                isPrimary: prev.length === 0,
-                isExisting: false,
-                existingCompanyId: null
-            }
-        ]);
-    };
+    //     setCompanies(prev => [
+    //         ...prev,
+    //         {
+    //             id: Date.now() + Math.random(),
+    //             name: "",
+    //             pan: "",
+    //             gst: "",
+    //             cin: "",
+    //             email: "",
+    //             mobile: "",
+    //             constitutionCategory: "",
+    //             sector: "",
+    //             businessNature: "",
+    //             website: "",
+    //             country: "India",
+    //             state: "",
+    //             district: "",
+    //             pincode: "",
+    //             preferredLanguage: "",
+    //             isPrimary: prev.length === 0,
+    //             isExisting: false,
+    //             existingCompanyId: null
+    //         }
+    //     ]);
+    // };
 
 
 
@@ -473,7 +473,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 toast.error(result.message || (customerData.CustomerID ? "Failed to update customer" : "Failed to add customer"));
             }
         } catch (err) {
-            toast.error("Error connecting to server");
+            toast.error("Error connecting to server", err);
         } finally {
             setIsSubmitting(false);
         }
@@ -731,7 +731,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                     </div>
                                 </div>
 
-                                {companies.map((company, index) => (
+                                {companies.map((company) => (
                                     <motion.div
                                         key={company.id}
                                         layout

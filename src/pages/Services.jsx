@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import React, { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import { CartContext } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { upsertQuote } from "../api/Quote";
@@ -72,7 +72,7 @@ const getCategoryIcon = (name = "") => {
 
 import { getAllStates } from "../api/States";
 
-const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSelectState, stateId, bulkLoading, setShowSigninModal }) => {
+const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSelectState, stateId, setShowSigninModal }) => {
   const features = service.Features || [];
   const categoryName = service.Category?.CategoryName || service.CategoryName;
   return (
@@ -83,11 +83,10 @@ const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSele
       exit={{ opacity: 0, y: -20 }}
       whileHover={{ y: -2 }}
       transition={{ duration: 0.3 }}
-      className={`bg-white rounded-2xl border-2 transition-all duration-300 overflow-hidden flex flex-col ${
-        isSelected
-          ? "border-[#F3C625] shadow-[0_0_0_3px_rgba(243,198,37,0.15)]"
-          : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
-      }`}
+      className={`bg-white rounded-2xl border-2 transition-all duration-300 overflow-hidden flex flex-col ${isSelected
+        ? "border-[#F3C625] shadow-[0_0_0_3px_rgba(243,198,37,0.15)]"
+        : "border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200"
+        }`}
     >
       {/* Popular Badge */}
       {service.IsPopular && (
@@ -142,7 +141,7 @@ const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSele
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#F3C625] transition-colors mb-4 group border border-gray-200 hover:border-[#F3C625] rounded-lg px-3 py-1 self-start"
         >
           <svg className="w-4 h-4 text-gray-400 group-hover:text-[#F3C625]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="9" strokeWidth="2"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" />
+            <circle cx="12" cy="12" r="9" strokeWidth="2" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" />
           </svg>
           Know More
           <span className="group-hover:translate-x-0.5 transition-transform inline-block">→</span>
@@ -236,7 +235,7 @@ const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSele
                   const payload = {
                     IsIndividual: 1,
                     IsMonthly: 0,
-                    
+
                     FranchiseeID: franchiseeId,
                     SelectedCompany: {
                       CompanyID: companyId,
@@ -274,7 +273,7 @@ const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSele
                   toast.success("Quote created successfully!");
                   if (typeof navigate === 'function') navigate("/dashboard/bizpoleone");
                 } catch (err) {
-                  toast.error("Failed to create quote. Please try again.");
+                  toast.error("Failed to create quote. Please try again.", err);
                 }
               }}
             >
@@ -286,15 +285,14 @@ const ServiceCard = ({ service, onLearnMore, isSelected, onSelect, price, onSele
             onClick={() => onSelect(service.ServiceID)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
-            className={` bg-gradient-to-r from-yellow-400 to-yellow-500 px-3 py-2 rounded-xl shadow-md hover:shadow-xl ${
-              isSelected
-                ? "bg-[#F3C625] text-black"
-                : "bg-[#F3C625] text-white hover:bg-[#e0b420]"
-            }`}
+            className={` bg-gradient-to-r from-yellow-400 to-yellow-500 px-3 py-2 rounded-xl shadow-md hover:shadow-xl ${isSelected
+              ? "bg-[#F3C625] text-black"
+              : "bg-[#F3C625] text-white hover:bg-[#e0b420]"
+              }`}
           >
             {isSelected ? (
               <>
-               
+
                 Selected
               </>
             ) : (
@@ -354,7 +352,7 @@ const Services = () => {
           if (!merged.some(s => s.ServiceID === svc.ServiceID)) merged.push(svc);
         });
         localStorage.setItem("AllServicesCache", JSON.stringify(merged));
-      } catch {}
+      } catch (err) { console.log(err); }
     };
     if (selectedCategory) {
       ServicesApi.getServicesByCategory(selectedCategory, { page, limit })
@@ -460,17 +458,17 @@ const Services = () => {
 
 
   // Helper to change stateId (reuse modal)
-  const handleChangeState = () => {
-    setShowStateModal(true);
-    setSelectedStateForModal("");
-    if (allStates.length === 0) {
-      setStatesLoading(true);
-      getAllStates()
-        .then((states) => setAllStates(states || []))
-        .catch(() => setAllStates([]))
-        .finally(() => setStatesLoading(false));
-    }
-  };
+  // const handleChangeState = () => {
+  //   setShowStateModal(true);
+  //   setSelectedStateForModal("");
+  //   if (allStates.length === 0) {
+  //     setStatesLoading(true);
+  //     getAllStates()
+  //       .then((states) => setAllStates(states || []))
+  //       .catch(() => setAllStates([]))
+  //       .finally(() => setStatesLoading(false));
+  //   }
+  // };
 
   // Store latest known prices for selected services in localStorage
   useEffect(() => {
@@ -484,7 +482,7 @@ const Services = () => {
           }
         });
         localStorage.setItem("SelectedServicePrices", JSON.stringify(updated));
-      } catch {}
+      } catch (err) { console.log(err); }
     }
   }, [bulkPrices]);
 
@@ -492,470 +490,473 @@ const Services = () => {
     <>
       <SigninModal isOpen={showSigninModal} onClose={() => setShowSigninModal(false)} />
       <div className="min-h-screen mt-20 bg-gray-50">
-      {/* State selection modal */}
-      {showStateModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-3">
-                Select Your State
-              </h2>
-              <p className="text-gray-600 text-xs">Please select your state to get accurate pricing</p>
+        {/* State selection modal */}
+        {showStateModal && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8">
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-3">
+                  Select Your State
+                </h2>
+                <p className="text-gray-600 text-xs">Please select your state to get accurate pricing</p>
+              </div>
+              <form onSubmit={handleStateModalSubmit}>
+                <div className="mb-6">
+                  <label className="block text-xs font-medium text-gray-700 mb-3">
+                    Select your state *
+                  </label>
+                  <select
+                    value={selectedStateForModal}
+                    onChange={e => setSelectedStateForModal(e.target.value)}
+                    required
+                    className="w-full px-4 py-2 rounded-xl border-2 text-sm border-gray-200 focus:ring-2 focus:ring-[#F3C625] focus:border-[#F3C625]"
+                    disabled={statesLoading}
+                  >
+                    <option value="">Choose your state</option>
+                    {allStates.map((state) => (
+                      <option key={state.id || state.StateID} value={state.id || state.StateID}>
+                        {state.state_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowStateModal(false)}
+                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:border-gray-400"
+                    disabled={!!stateId}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!selectedStateForModal}
+                    className="flex-1 px-6 py-3 bg-[#F3C625] text-white text-sm font-semibold rounded-xl hover:bg-[#e0b420] disabled:opacity-50"
+                  >
+                    Get Price
+                  </button>
+                </div>
+              </form>
             </div>
-            <form onSubmit={handleStateModalSubmit}>
-              <div className="mb-6">
-                <label className="block text-xs font-medium text-gray-700 mb-3">
-                  Select your state *
-                </label>
-                <select
-                  value={selectedStateForModal}
-                  onChange={e => setSelectedStateForModal(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 rounded-xl border-2 text-sm border-gray-200 focus:ring-2 focus:ring-[#F3C625] focus:border-[#F3C625]"
-                  disabled={statesLoading}
-                >
-                  <option value="">Choose your state</option>
-                  {allStates.map((state) => (
-                    <option key={state.id || state.StateID} value={state.id || state.StateID}>
-                      {state.state_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowStateModal(false)}
-                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 text-sm font-semibold rounded-xl hover:border-gray-400"
-                  disabled={!!stateId}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={!selectedStateForModal}
-                  className="flex-1 px-6 py-3 bg-[#F3C625] text-white text-sm font-semibold rounded-xl hover:bg-[#e0b420] disabled:opacity-50"
-                >
-                  Get Price
-                </button>
-              </div>
-            </form>
+          </div>
+        )}
+        {/* Page Header */}
+        <div className=" border-b border-gray-100">
+          <div className="max-w-7xl mt-26 mb-18 mx-auto px-6 py-10 text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-[#c9a700] text-xs font-semibold rounded-full mb-4 border border-amber-100">
+              <IconStar /> Explore Our Services
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold font-black text-gray-900 mb-3">
+              Choose Your Perfect Service
+            </h1>
+            <p className="text-gray-500 max-w-lg mx-auto text-sm">
+              Professional business services tailored to help your company thrive in today's competitive market
+            </p>
           </div>
         </div>
-      )}
-      {/* Page Header */}
-      <div className=" border-b border-gray-100">
-        <div className="max-w-7xl mt-26 mb-18 mx-auto px-6 py-10 text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 text-[#c9a700] text-xs font-semibold rounded-full mb-4 border border-amber-100">
-            <IconStar /> Explore Our Services
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold font-black text-gray-900 mb-3">
-            Choose Your Perfect Service
-          </h1>
-          <p className="text-gray-500 max-w-lg mx-auto text-sm">
-            Professional business services tailored to help your company thrive in today's competitive market
-          </p>
-        </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 flex gap-6">
-        {/* Sidebar */}
-        <motion.aside
-          animate={{ width: sidebarOpen ? 240 : 0, opacity: sidebarOpen ? 1 : 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex-shrink-0 overflow-hidden"
-        >
-          <div className="w-60 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sticky ">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 font-bold text-gray-800 text-sm">
-                <IconFilter />
-                Filters
+        <div className="max-w-7xl mx-auto px-6 py-8 flex gap-6">
+          {/* Sidebar */}
+          <motion.aside
+            animate={{ width: sidebarOpen ? 240 : 0, opacity: sidebarOpen ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="flex-shrink-0 overflow-hidden"
+          >
+            <div className="w-60 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 sticky ">
+              {/* Sidebar Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2 font-bold text-gray-800 text-sm">
+                  <IconFilter />
+                  Filters
+                </div>
+                <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xs">
+                  <IconChevronUp />
+                </button>
               </div>
-              <button onClick={() => setSidebarOpen(false)} className="text-gray-400 hover:text-gray-600 text-xs">
-                <IconChevronUp />
-              </button>
-            </div>
 
-            {/* Search */}
-            <div className="mb-4">
-              <p className="text-xs font-semibold text-gray-500 mb-2">Search Services</p>
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Type to search..."
-                  value={filter}
-                  onChange={(e) => { setFilter(e.target.value); setPage(1); }}
-                  className="w-full pl-8 pr-3 py-2 text-sm rounded-xl border border-gray-200 focus:border-[#F3C625] focus:ring-1 focus:ring-[#F3C625] outline-none transition-all"
-                />
-                <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
-                  <IconSearch />
+              {/* Search */}
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-gray-500 mb-2">Search Services</p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Type to search..."
+                    value={filter}
+                    onChange={(e) => { setFilter(e.target.value); setPage(1); }}
+                    className="w-full pl-8 pr-3 py-2 text-sm rounded-xl border border-gray-200 focus:border-[#F3C625] focus:ring-1 focus:ring-[#F3C625] outline-none transition-all"
+                  />
+                  <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400">
+                    <IconSearch />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Categories */}
-            <div>
-              <p className="text-xs font-semibold text-gray-500 mb-2">Categories</p>
-              <div className="space-y-1">
-                <button
-                  onClick={() => handleCategoryChange("")}
-                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                    !selectedCategory
+              {/* Categories */}
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">Categories</p>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => handleCategoryChange("")}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${!selectedCategory
                       ? "bg-[#F3C625] text-white"
                       : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <IconGrid />
-                  All
-                </button>
-                {categoriesLoading ? (
-                  <div className="text-xs text-gray-400 px-3 py-2">Loading…</div>
-                ) : (
-                  categories.map((cat) => (
-                    <button
-                      key={cat.CategoryID}
-                      onClick={() => handleCategoryChange(cat.CategoryID.toString())}
-                      className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
-                        selectedCategory === cat.CategoryID.toString()
+                      }`}
+                  >
+                    <IconGrid />
+                    All
+                  </button>
+                  {categoriesLoading ? (
+                    <div className="text-xs text-gray-400 px-3 py-2">Loading…</div>
+                  ) : (
+                    categories.map((cat) => (
+                      <button
+                        key={cat.CategoryID}
+                        onClick={() => handleCategoryChange(cat.CategoryID.toString())}
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-all ${selectedCategory === cat.CategoryID.toString()
                           ? "bg-[#F3C625] text-white"
                           : "text-gray-600 hover:bg-gray-50"
-                      }`}
-                    >
-                      <span>{getCategoryIcon(cat.CategoryName)}</span>
-                      {cat.CategoryName}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Selected Services Summary */}
-            <div className="mt-6 pt-4 border-t border-gray-100">
-              <p className="text-xs text-gray-500">
-                <span className="font-bold text-gray-800">{selectedServices.length}</span> service{selectedServices.length !== 1 ? "s" : ""} selected
-              </p>
-              {selectedServices.length > 0 && (
-                <>
-                  <div className="mt-2 mb-2 max-h-40 overflow-y-auto">
-                    {selectedServices.map(sid => {
-                      // Try to find the service in current page, else fallback to localStorage cache
-                      let svc = services.find(s => s.ServiceID === sid);
-                      if (!svc) {
-                        try {
-                          const allSvcs = JSON.parse(localStorage.getItem("AllServicesCache") || "[]");
-                          svc = allSvcs.find(s => s.ServiceID === sid);
-                        } catch {}
-                      }
-                      // Get price from bulkPrices or fallback to localStorage
-                      let price = bulkPrices[sid]?.TotalFee;
-                      if (!price) {
-                        try {
-                          const priceCache = JSON.parse(localStorage.getItem("SelectedServicePrices") || "{}");
-                          price = priceCache[sid];
-                        } catch {}
-                      }
-                      return (
-                        <div key={sid} className="flex justify-between items-center text-xs py-1 border-b border-gray-100 last:border-b-0">
-                          <span className="truncate max-w-[110px]" title={svc?.ServiceName}>{svc?.ServiceName || 'Service'}</span>
-                          <span className="font-semibold text-green-700">
-                            {price && typeof price === 'object' ? `₹${price.TotalFee}` : price ? `₹${price}` : '--'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {/* Total Price Calculation */}
-                  <div className="flex justify-between items-center text-sm font-bold py-2 border-t border-gray-200 mb-2">
-                    <span>Total</span>
-                    <span className="text-green-700">
-                      ₹{
-                        selectedServices.reduce((sum, sid) => {
-                          let price = bulkPrices[sid];
-                          let value = 0;
-                          if (price && typeof price === 'object' && price.TotalFee) {
-                            value = parseFloat(price.TotalFee) || 0;
-                          } else if (typeof price === 'number' || typeof price === 'string') {
-                            value = parseFloat(price) || 0;
-                          } else {
-                            try {
-                              const priceCache = JSON.parse(localStorage.getItem("SelectedServicePrices") || "{}");
-                              value = parseFloat(priceCache[sid]) || 0;
-                            } catch {}
-                          }
-                          return sum + value;
-                        }, 0).toLocaleString('en-IN')
-                      }
-                    </span>
-                  </div>
-                 <button
-    style={{marginTop: 8}}
-    className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-4 py-2 rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
-    onClick={async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setShowSigninModal(true);
-        return;
-      }
-      try {
-        const user = getSecureItem("user");
-        const selectedCompany = getSecureItem("selectedCompany");
-        const franchiseeId = user?.FranchiseeId || user?.FranchiseeID || 1;
-        const employeeId = user?.EmployeeID || 9;
-        const employeeName = user?.FirstName || "admin";
-        const customerId = user?.CustomerID || 2;
-        const customerName = user?.FirstName ? `${user.FirstName} ${user.LastName || ''}`.trim() : "John Doe";
-        const stateName = selectedCompany?.State || "";
-        const companyName = selectedCompany?.CompanyName || "";
-        const companyId = selectedCompany?.CompanyID || null;
-
-        // Use CartContext for selected services and prices
-        const selectedServiceIds = Object.keys(cart).map(Number);
-        // Build ServiceDetails from cart
-        const serviceDetails = selectedServiceIds.map(sid => {
-          let svc = services.find(s => s.ServiceID === sid);
-          if (!svc) {
-            try {
-              const allCache = JSON.parse(localStorage.getItem("AllServicesCache") || "[]");
-              svc = allCache.find(s => s.ServiceID === sid);
-            } catch {}
-          }
-          const price = cart[sid] || {};
-          return {
-            ServiceID: svc?.ServiceID,
-            ItemName: svc?.ServiceName,
-            ProfessionalFee: price.ProfessionalFee ?? 100,
-            VendorFee: price.VendorFee ?? 100,
-            GovtFee: price.GovtFee ?? 100,
-            ContractorFee: price.ContractorFee ?? 100,
-            GSTPercent: price.GSTPercent ?? 0,
-            GstAmount: price.GstAmount ?? 18,
-            CGST: price.CGST ?? 9,
-            SGST: price.SGST ?? 9,
-            IGST: price.IGST ?? 0,
-            Discount: price.Discount ?? 0,
-            Rounding: price.Rounding ?? 0,
-            Total: price.TotalFee ?? (typeof price === 'number' ? price : 418),
-            AdvanceAmount: price.AdvanceAmount ?? 126,
-            IsManual: 0,
-            IsIndividual: 1
-          };
-        });
-
-        // Build SelectedServicePrices from cart
-        const selectedServicePrices = {};
-        selectedServiceIds.forEach(sid => {
-          selectedServicePrices[sid] = cart[sid] || {};
-        });
-
-        const payload = {
-          IsIndividual: 1,
-          IsMonthly: 0,
-          FranchiseeID: franchiseeId,
-          SelectedCompany: {
-            CompanyID: companyId,
-            CompanyName: companyName,
-            State: stateName
-          },
-          SelectedCustomer: {
-            CustomerID: customerId,
-            CustomerName: customerName
-          },
-          QuoteCRE: {
-            EmployeeID: employeeId,
-            EmployeeName: employeeName
-          },
-          SourceOfSale: "Website",
-          StateService: stateName,
-          Remarks: "Generated from services page",
-          QuoteStatus: "Draft",
-          IsDirect: 1,
-          ServiceDetails: serviceDetails,
-          SelectedServices: selectedServiceIds,
-          SelectedServicePrices: selectedServicePrices,
-          MailQuoteCustomers: [
-            {
-              CustomerID: customerId,
-              CustomerName: customerName,
-              Email: user?.Email || ""
-            }
-          ],
-          PaymentType: 0,
-          EmployeeID: employeeId
-        };
-
-        payload.is_manual = 0;
-        const res = await upsertQuote(payload);
-        navigate("/dashboard/bizpoleone");
-      } catch (err) {
-        alert("Failed to create quote. Please try again.");
-      }
-    }}
->
-  Request Quote
-</button>
- 
-                  <button
-                    onClick={() => setSelectedServices([])}
-                    className="text-xs text-red-400 hover:text-red-600 mt-1 transition-colors w-full text-center"
-                  >
-                    Clear selection
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </motion.aside>
-
-        {/* Main Content */}
-        <div className="flex-1 min-w-0">
-          {/* Toolbar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              {!sidebarOpen && (
-                <button
-                  onClick={() => setSidebarOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl text-gray-600 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
-                >
-                  <IconFilter /> Filters
-                </button>
-              )}
-              <div>
-                <p className="font-bold text-gray-900 text-sm">
-                  {loading ? "Loading..." : `${totalCount} Services Available`}
-                </p>
-                <p className="text-xs text-gray-400">
-                  {selectedCategory
-                    ? `In: ${categories.find(c => c.CategoryID.toString() === selectedCategory)?.CategoryName || "category"}`
-                    : "across all categories"}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {(filter || selectedCategory) && (
-                <button
-                  onClick={() => { setFilter(""); setSelectedCategory(""); setPage(1); }}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
-                >
-                  Clear filters
-                </button>
-              )}
-              <div className="text-xs text-amber-500 font-semibold flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
-                <IconStar /> Popular picks
-              </div>
-            </div>
-          </div>
-
-          {/* Grid */}
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-4"
-              >
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-gray-100" />
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
-                        <div className="h-3 bg-gray-100 rounded w-1/3" />
-                      </div>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded w-full mb-2" />
-                    <div className="h-3 bg-gray-100 rounded w-4/5 mb-4" />
-                    <div className="grid grid-cols-2 gap-2 mb-4">
-                      {[1,2,3,4].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
-                    </div>
-                    <div className="h-10 bg-gray-100 rounded-xl" />
-                  </div>
-                ))}
-              </motion.div>
-            ) : services.length === 0 ? (
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-24 bg-white rounded-2xl border border-gray-100"
-              >
-                <div className="text-5xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-gray-700 mb-2">No services found</h3>
-                <p className="text-gray-400 text-sm mb-4">
-                  {filter || selectedCategory ? "Try adjusting your filters" : "No services available"}
-                </p>
-                {(filter || selectedCategory) && (
-                  <button
-                    onClick={() => { setFilter(""); setSelectedCategory(""); setPage(1); }}
-                    className="px-5 py-2 bg-[#F3C625] text-white rounded-xl font-semibold text-sm hover:bg-[#e0b420] transition-colors"
-                  >
-                    Clear Filters
-                  </button>
-                )}
-              </motion.div>
-            ) : (
-              <motion.div key="grid" layout>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {services.map((service) => (
-                    <ServiceCard
-                      key={service.ServiceID}
-                      service={service}
-                      onLearnMore={handleLearnMore}
-                      isSelected={selectedServices.includes(service.ServiceID)}
-                      onSelect={handleSelectService}
-                      price={getBulkPrice(service.ServiceID)}
-                      onSelectState={openStateModal}
-                      stateId={stateId}
-                      bulkLoading={bulkLoading}
-                      setShowSigninModal={setShowSigninModal}
-                    />
-                  ))}
+                          }`}
+                      >
+                        <span>{getCategoryIcon(cat.CategoryName)}</span>
+                        {cat.CategoryName}
+                      </button>
+                    ))
+                  )}
                 </div>
+              </div>
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-center gap-2 mt-8">
-                    <button
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={page === 1}
-                      className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 disabled:opacity-40 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
-                    >
-                      ← Previous
-                    </button>
-                    <div className="flex gap-1">
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                        let pageNum = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
+              {/* Selected Services Summary */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <p className="text-xs text-gray-500">
+                  <span className="font-bold text-gray-800">{selectedServices.length}</span> service{selectedServices.length !== 1 ? "s" : ""} selected
+                </p>
+                {selectedServices.length > 0 && (
+                  <>
+                    <div className="mt-2 mb-2 max-h-40 overflow-y-auto">
+                      {selectedServices.map(sid => {
+                        // Try to find the service in current page, else fallback to localStorage cache
+                        let svc = services.find(s => s.ServiceID === sid);
+                        if (!svc) {
+                          try {
+                            const allSvcs = JSON.parse(localStorage.getItem("AllServicesCache") || "[]");
+                            svc = allSvcs.find(s => s.ServiceID === sid);
+                          } catch (err) { console.log(err); }
+                        }
+                        // Get price from bulkPrices or fallback to localStorage
+                        let price = bulkPrices[sid]?.TotalFee;
+                        if (!price) {
+                          try {
+                            const priceCache = JSON.parse(localStorage.getItem("SelectedServicePrices") || "{}");
+                            price = priceCache[sid];
+                          } catch (error) {
+                            console.error("Error fetching services:", error);
+                          }
+                        }
                         return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setPage(pageNum)}
-                            className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${
-                              page === pageNum
-                                ? "bg-[#F3C625] text-white shadow-sm"
-                                : "bg-white text-gray-600 border border-gray-200 hover:border-[#F3C625]"
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
+                          <div key={sid} className="flex justify-between items-center text-xs py-1 border-b border-gray-100 last:border-b-0">
+                            <span className="truncate max-w-[110px]" title={svc?.ServiceName}>{svc?.ServiceName || 'Service'}</span>
+                            <span className="font-semibold text-green-700">
+                              {price && typeof price === 'object' ? `₹${price.TotalFee}` : price ? `₹${price}` : '--'}
+                            </span>
+                          </div>
                         );
                       })}
                     </div>
+                    {/* Total Price Calculation */}
+                    <div className="flex justify-between items-center text-sm font-bold py-2 border-t border-gray-200 mb-2">
+                      <span>Total</span>
+                      <span className="text-green-700">
+                        ₹{
+                          selectedServices.reduce((sum, sid) => {
+                            let price = bulkPrices[sid];
+                            let value = 0;
+                            if (price && typeof price === 'object' && price.TotalFee) {
+                              value = parseFloat(price.TotalFee) || 0;
+                            } else if (typeof price === 'number' || typeof price === 'string') {
+                              value = parseFloat(price) || 0;
+                            } else {
+                              try {
+                                const priceCache = JSON.parse(localStorage.getItem("SelectedServicePrices") || "{}");
+                                value = parseFloat(priceCache[sid]) || 0;
+                              } catch (error) {
+                                console.error("Error fetching services:", error);
+                              }
+                            }
+                            return sum + value;
+                          }, 0).toLocaleString('en-IN')
+                        }
+                      </span>
+                    </div>
                     <button
-                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                      className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 disabled:opacity-40 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
+                      style={{ marginTop: 8 }}
+                      className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-4 py-2 rounded-xl shadow-md hover:shadow-xl transition-all duration-300"
+                      onClick={async () => {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                          setShowSigninModal(true);
+                          return;
+                        }
+                        try {
+                          const user = getSecureItem("user");
+                          const selectedCompany = getSecureItem("selectedCompany");
+                          const franchiseeId = user?.FranchiseeId || user?.FranchiseeID || 1;
+                          const employeeId = user?.EmployeeID || 9;
+                          const employeeName = user?.FirstName || "admin";
+                          const customerId = user?.CustomerID || 2;
+                          const customerName = user?.FirstName ? `${user.FirstName} ${user.LastName || ''}`.trim() : "John Doe";
+                          const stateName = selectedCompany?.State || "";
+                          const companyName = selectedCompany?.CompanyName || "";
+                          const companyId = selectedCompany?.CompanyID || null;
+
+                          // Use CartContext for selected services and prices
+                          const selectedServiceIds = Object.keys(cart).map(Number);
+                          // Build ServiceDetails from cart
+                          const serviceDetails = selectedServiceIds.map(sid => {
+                            let svc = services.find(s => s.ServiceID === sid);
+                            if (!svc) {
+                              try {
+                                const allCache = JSON.parse(localStorage.getItem("AllServicesCache") || "[]");
+                                svc = allCache.find(s => s.ServiceID === sid);
+                              } catch (error) {
+                                console.error("Error fetching services:", error);
+                              }
+                            }
+                            const price = cart[sid] || {};
+                            return {
+                              ServiceID: svc?.ServiceID,
+                              ItemName: svc?.ServiceName,
+                              ProfessionalFee: price.ProfessionalFee ?? 100,
+                              VendorFee: price.VendorFee ?? 100,
+                              GovtFee: price.GovtFee ?? 100,
+                              ContractorFee: price.ContractorFee ?? 100,
+                              GSTPercent: price.GSTPercent ?? 0,
+                              GstAmount: price.GstAmount ?? 18,
+                              CGST: price.CGST ?? 9,
+                              SGST: price.SGST ?? 9,
+                              IGST: price.IGST ?? 0,
+                              Discount: price.Discount ?? 0,
+                              Rounding: price.Rounding ?? 0,
+                              Total: price.TotalFee ?? (typeof price === 'number' ? price : 418),
+                              AdvanceAmount: price.AdvanceAmount ?? 126,
+                              IsManual: 0,
+                              IsIndividual: 1
+                            };
+                          });
+
+                          // Build SelectedServicePrices from cart
+                          const selectedServicePrices = {};
+                          selectedServiceIds.forEach(sid => {
+                            selectedServicePrices[sid] = cart[sid] || {};
+                          });
+
+                          const payload = {
+                            IsIndividual: 1,
+                            IsMonthly: 0,
+                            FranchiseeID: franchiseeId,
+                            SelectedCompany: {
+                              CompanyID: companyId,
+                              CompanyName: companyName,
+                              State: stateName
+                            },
+                            SelectedCustomer: {
+                              CustomerID: customerId,
+                              CustomerName: customerName
+                            },
+                            QuoteCRE: {
+                              EmployeeID: employeeId,
+                              EmployeeName: employeeName
+                            },
+                            SourceOfSale: "Website",
+                            StateService: stateName,
+                            Remarks: "Generated from services page",
+                            QuoteStatus: "Draft",
+                            IsDirect: 1,
+                            ServiceDetails: serviceDetails,
+                            SelectedServices: selectedServiceIds,
+                            SelectedServicePrices: selectedServicePrices,
+                            MailQuoteCustomers: [
+                              {
+                                CustomerID: customerId,
+                                CustomerName: customerName,
+                                Email: user?.Email || ""
+                              }
+                            ],
+                            PaymentType: 0,
+                            EmployeeID: employeeId
+                          };
+
+                          payload.is_manual = 0;
+                          await upsertQuote(payload);
+                          navigate("/dashboard/bizpoleone");
+                        } catch (err) {
+                          alert("Failed to create quote. Please try again.", err);
+                        }
+                      }}
                     >
-                      Next →
+                      Request Quote
                     </button>
-                  </div>
+
+                    <button
+                      onClick={() => setSelectedServices([])}
+                      className="text-xs text-red-400 hover:text-red-600 mt-1 transition-colors w-full text-center"
+                    >
+                      Clear selection
+                    </button>
+                  </>
                 )}
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
+            </div>
+          </motion.aside>
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Toolbar */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                {!sidebarOpen && (
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-2 text-sm bg-white border border-gray-200 rounded-xl text-gray-600 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
+                  >
+                    <IconFilter /> Filters
+                  </button>
+                )}
+                <div>
+                  <p className="font-bold text-gray-900 text-sm">
+                    {loading ? "Loading..." : `${totalCount} Services Available`}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {selectedCategory
+                      ? `In: ${categories.find(c => c.CategoryID.toString() === selectedCategory)?.CategoryName || "category"}`
+                      : "across all categories"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {(filter || selectedCategory) && (
+                  <button
+                    onClick={() => { setFilter(""); setSelectedCategory(""); setPage(1); }}
+                    className="text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                  >
+                    Clear filters
+                  </button>
+                )}
+                <div className="text-xs text-amber-500 font-semibold flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                  <IconStar /> Popular picks
+                </div>
+              </div>
+            </div>
+
+            {/* Grid */}
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 animate-pulse">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-gray-100" />
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-100 rounded w-3/4 mb-2" />
+                          <div className="h-3 bg-gray-100 rounded w-1/3" />
+                        </div>
+                      </div>
+                      <div className="h-3 bg-gray-100 rounded w-full mb-2" />
+                      <div className="h-3 bg-gray-100 rounded w-4/5 mb-4" />
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        {[1, 2, 3, 4].map(j => <div key={j} className="h-3 bg-gray-100 rounded" />)}
+                      </div>
+                      <div className="h-10 bg-gray-100 rounded-xl" />
+                    </div>
+                  ))}
+                </motion.div>
+              ) : services.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-24 bg-white rounded-2xl border border-gray-100"
+                >
+                  <div className="text-5xl mb-4">🔍</div>
+                  <h3 className="text-xl font-bold text-gray-700 mb-2">No services found</h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {filter || selectedCategory ? "Try adjusting your filters" : "No services available"}
+                  </p>
+                  {(filter || selectedCategory) && (
+                    <button
+                      onClick={() => { setFilter(""); setSelectedCategory(""); setPage(1); }}
+                      className="px-5 py-2 bg-[#F3C625] text-white rounded-xl font-semibold text-sm hover:bg-[#e0b420] transition-colors"
+                    >
+                      Clear Filters
+                    </button>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div key="grid" layout>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {services.map((service) => (
+                      <ServiceCard
+                        key={service.ServiceID}
+                        service={service}
+                        onLearnMore={handleLearnMore}
+                        isSelected={selectedServices.includes(service.ServiceID)}
+                        onSelect={handleSelectService}
+                        price={getBulkPrice(service.ServiceID)}
+                        onSelectState={openStateModal}
+                        stateId={stateId}
+                        bulkLoading={bulkLoading}
+                        setShowSigninModal={setShowSigninModal}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-8">
+                      <button
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        disabled={page === 1}
+                        className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 disabled:opacity-40 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
+                      >
+                        ← Previous
+                      </button>
+                      <div className="flex gap-1">
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNum = totalPages <= 5 ? i + 1 : page <= 3 ? i + 1 : page >= totalPages - 2 ? totalPages - 4 + i : page - 2 + i;
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setPage(pageNum)}
+                              className={`w-9 h-9 rounded-xl text-sm font-semibold transition-all ${page === pageNum
+                                ? "bg-[#F3C625] text-white shadow-sm"
+                                : "bg-white text-gray-600 border border-gray-200 hover:border-[#F3C625]"
+                                }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <button
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        disabled={page === totalPages}
+                        className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-600 disabled:opacity-40 hover:border-[#F3C625] hover:text-[#F3C625] transition-all"
+                      >
+                        Next →
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
       </div>
     </>
   );

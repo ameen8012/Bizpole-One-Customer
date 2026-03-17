@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -6,14 +6,9 @@ import {
     ChevronRight,
     Loader2,
     Briefcase,
-    Globe,
     MapPin,
-    Hash,
-    Calendar,
     Settings,
-    User,
     Phone,
-    Mail,
     Info
 } from 'lucide-react';
 import * as CompanyApi from '../../api/CompanyApi';

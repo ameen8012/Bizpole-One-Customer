@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Plus, Search } from 'lucide-react';
 
 const ChatSidebar = ({ conversations, selectedChat, setSelectedChat }) => {
@@ -36,9 +36,8 @@ const ChatSidebar = ({ conversations, selectedChat, setSelectedChat }) => {
           <div
             key={idx}
             onClick={() => setSelectedChat(conv.name)}
-            className={`px-4 py-3 cursor-pointer transition-colors ${
-              selectedChat === conv.name ? 'bg-gray-300' : 'hover:bg-gray-200'
-            }`}
+            className={`px-4 py-3 cursor-pointer transition-colors ${selectedChat === conv.name ? 'bg-gray-300' : 'hover:bg-gray-200'
+              }`}
           >
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-white flex-shrink-0">
@@ -54,11 +53,10 @@ const ChatSidebar = ({ conversations, selectedChat, setSelectedChat }) => {
                 <p className="text-sm text-gray-600 truncate">{conv.message}</p>
                 {conv.badge && (
                   <span
-                    className={`inline-block mt-1 px-2 py-0.5 rounded text-xs ${
-                      conv.badge === 'Requested'
+                    className={`inline-block mt-1 px-2 py-0.5 rounded text-xs ${conv.badge === 'Requested'
                         ? 'bg-green-200 text-green-800'
                         : 'bg-gray-200 text-gray-700'
-                    }`}
+                      }`}
                   >
                     {conv.badge}
                   </span>
@@ -101,9 +99,8 @@ const ChatWindow = ({ selectedChat, messages, onSend }) => {
         {messages[selectedChat]?.map((msg, idx) => (
           <div
             key={idx}
-            className={`flex items-end gap-2 ${
-              msg.sender === 'user' ? 'justify-end' : 'justify-start'
-            }`}
+            className={`flex items-end gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'
+              }`}
           >
             {msg.sender === 'other' && (
               <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm flex-shrink-0">
@@ -111,11 +108,10 @@ const ChatWindow = ({ selectedChat, messages, onSend }) => {
               </div>
             )}
             <div
-              className={`max-w-xs px-4 py-2 rounded-2xl ${
-                msg.sender === 'user'
+              className={`max-w-xs px-4 py-2 rounded-2xl ${msg.sender === 'user'
                   ? 'bg-yellow-400 text-gray-800'
                   : 'bg-white text-gray-800'
-              }`}
+                }`}
             >
               <p className="text-sm">{msg.text}</p>
             </div>

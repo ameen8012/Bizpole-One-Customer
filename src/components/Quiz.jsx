@@ -5,7 +5,6 @@ import {
   Zap,
   CheckCircle2,
   ArrowRight,
-  RotateCcw,
   Sparkles,
   Building,
   TrendingUp,
@@ -166,7 +165,7 @@ const businessStructureRules = [
   },
 ];
 
-const Quiz = ({ onComplete = () => {} }) => {
+const Quiz = ({ onComplete = () => { } }) => {
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(3);
   const [started, setStarted] = useState(false);
@@ -295,15 +294,15 @@ const Quiz = ({ onComplete = () => {} }) => {
     handleAnswer(def);
   };
 
-  const resetQuiz = () => {
-    setCountdown(2);
-    setStarted(false);
-    setCurrentQuestion(0);
-    setFinished(false);
-    setAnswers({});
-    setSelectedOption(null);
-    setRecommendation(null);
-  };
+  // const resetQuiz = () => {
+  //   setCountdown(2);
+  //   setStarted(false);
+  //   setCurrentQuestion(0);
+  //   setFinished(false);
+  //   setAnswers({});
+  //   setSelectedOption(null);
+  //   setRecommendation(null);
+  // };
 
   // Floating particles (kept from your design)
   const FloatingParticles = () => (
@@ -439,11 +438,10 @@ const Quiz = ({ onComplete = () => {} }) => {
               <motion.button
                 key={idx}
                 onClick={() => handleAnswer(option)}
-                className={`w-full group relative py-5 px-8 rounded-2xl text-left font-semibold transition-all duration-300 shadow-sm hover:shadow-lg ${
-                  selectedOption === option
-                    ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white"
-                    : "bg-gray-200 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-yellow-100 hover:border-yellow-400"
-                }`}
+                className={`w-full group relative py-5 px-8 rounded-2xl text-left font-semibold transition-all duration-300 shadow-sm hover:shadow-lg ${selectedOption === option
+                  ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-white"
+                  : "bg-gray-200 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-yellow-100 hover:border-yellow-400"
+                  }`}
                 whileHover={{ scale: selectedOption ? 1 : 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 initial={{ opacity: 0, y: 20 }}

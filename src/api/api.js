@@ -1,40 +1,39 @@
-import axiosInstance from "./axiosInstance";
 
 // Alternative API implementation
-const fetchCountryCodes = async () => {
-  try {
-    setLoadingCountries(true);
-    const response = await fetch("https://api.first.org/data/v1/countries?limit=300");
+// const fetchCountryCodes = async () => {
+//   try {
+//     setLoadingCountries(true);
+//     const response = await fetch("https://api.first.org/data/v1/countries?limit=300");
     
-    if (!response.ok) {
-      throw new Error("Failed to fetch country data");
-    }
+//     if (!response.ok) {
+//       throw new Error("Failed to fetch country data");
+//     }
     
-    const data = await response.json();
-    const countriesData = data.data;
+//     const data = await response.json();
+//     const countriesData = data.data;
     
-    // Process country data to extract codes and flags
-    const processedCountries = Object.entries(countriesData).map(([code, country]) => ({
-      code: country.callingcode ? `+${country.callingcode[0]}` : "+1",
-      label: `${country.country} +${country.callingcode ? country.callingcode[0] : "1"}`,
-      name: country.country
-    })).sort((a, b) => a.name.localeCompare(b.name));
+//     // Process country data to extract codes and flags
+//     const processedCountries = Object.entries(countriesData).map(([code, country]) => ({
+//       code: country.callingcode ? `+${country.callingcode[0]}` : "+1",
+//       label: `${country.country} +${country.callingcode ? country.callingcode[0] : "1"}`,
+//       name: country.country
+//     })).sort((a, b) => a.name.localeCompare(b.name));
     
-    setCountryCodes(processedCountries);
-  } catch (err) {
-    console.error("Error fetching countries:", err);
-    // Fallback to a few common codes if API fails
-    setCountryCodes([
-      { code: "+91", label: "🇮🇳 +91", name: "India" },
-      { code: "+1", label: "🇺🇸 +1", name: "United States" },
-      { code: "+44", label: "🇬🇧 +44", name: "United Kingdom" },
-      { code: "+971", label: "🇦🇪 +971", name: "United Arab Emirates" },
-      { code: "+61", label: "🇦🇺 +61", name: "Australia" },
-    ]);
-  } finally {
-    setLoadingCountries(false);
-  }
-};
+//     setCountryCodes(processedCountries);
+//   } catch (err) {
+//     console.error("Error fetching countries:", err);
+//     // Fallback to a few common codes if API fails
+//     setCountryCodes([
+//       { code: "+91", label: "🇮🇳 +91", name: "India" },
+//       { code: "+1", label: "🇺🇸 +1", name: "United States" },
+//       { code: "+44", label: "🇬🇧 +44", name: "United Kingdom" },
+//       { code: "+971", label: "🇦🇪 +971", name: "United Arab Emirates" },
+//       { code: "+61", label: "🇦🇺 +61", name: "Australia" },
+//     ]);
+//   } finally {
+//     setLoadingCountries(false);
+//   }
+// };
 
 
 

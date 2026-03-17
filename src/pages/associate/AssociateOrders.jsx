@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, Loader2, Eye, FileText, ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Filter, Loader2, ChevronLeft, ChevronRight, } from 'lucide-react';
 import { getSecureItem } from '../../utils/secureStorage';
 import { format, differenceInDays } from 'date-fns';
 import { initPayment, listOrders } from '../../api/Orders/Order';
@@ -17,7 +17,7 @@ const AssociateOrders = () => {
 
     const navigate = useNavigate();
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         setLoading(true);
         try {
             const user = getSecureItem("partnerUser") || {};
@@ -33,7 +33,6 @@ const AssociateOrders = () => {
 
             console.log("response", response);
 
-
             if (response.success) {
                 setOrders(response.data);
                 setTotalOrders(response.total);
@@ -43,11 +42,11 @@ const AssociateOrders = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchTerm]);
 
     useEffect(() => {
         fetchOrders();
-    }, [currentPage]);
+    }, [fetchOrders]);
 
     const handleSearch = (e) => {
         if (e.key === 'Enter') {
@@ -115,20 +114,20 @@ const AssociateOrders = () => {
     };
 
 
-    const calculateFees = (services) => {
-        if (!services || !Array.isArray(services)) return { prof: 0, cont: 0, vend: 0, govt: 0, cgst: 0, sgst: 0, igst: 0, gst: 0 };
-        return services.reduce((acc, s) => {
-            acc.prof += Number(s.ProfessionalFee || s.ProfFee || 0);
-            acc.cont += Number(s.ContractorFee || 0);
-            acc.vend += Number(s.VendorFee || 0);
-            acc.govt += Number(s.GovtFee || 0);
-            acc.gst += Number(s.GstAmount || s.GST || 0);
-            acc.cgst += Number(s.CGST || 0);
-            acc.sgst += Number(s.SGST || 0);
-            acc.igst += Number(s.IGST || 0);
-            return acc;
-        }, { prof: 0, cont: 0, vend: 0, govt: 0, cgst: 0, sgst: 0, igst: 0, gst: 0 });
-    };
+    // const calculateFees = (services) => {
+    //     if (!services || !Array.isArray(services)) return { prof: 0, cont: 0, vend: 0, govt: 0, cgst: 0, sgst: 0, igst: 0, gst: 0 };
+    //     return services.reduce((acc, s) => {
+    //         acc.prof += Number(s.ProfessionalFee || s.ProfFee || 0);
+    //         acc.cont += Number(s.ContractorFee || 0);
+    //         acc.vend += Number(s.VendorFee || 0);
+    //         acc.govt += Number(s.GovtFee || 0);
+    //         acc.gst += Number(s.GstAmount || s.GST || 0);
+    //         acc.cgst += Number(s.CGST || 0);
+    //         acc.sgst += Number(s.SGST || 0);
+    //         acc.igst += Number(s.IGST || 0);
+    //         return acc;
+    //     }, { prof: 0, cont: 0, vend: 0, govt: 0, cgst: 0, sgst: 0, igst: 0, gst: 0 });
+    // };
 
     const totalPages = Math.ceil(totalOrders / pageSize);
 
@@ -216,7 +215,7 @@ const AssociateOrders = () => {
                                 orders.map((order, index) => {
                                     console.log("sss", order.PendingAmount);
 
-                                    const fees = calculateFees(order.ServiceDetails);
+                                    // const fees = calculateFees(order.ServiceDetails);
                                     const pendingAmount = Number(order.PendingAmount || 0);
 
                                     return (

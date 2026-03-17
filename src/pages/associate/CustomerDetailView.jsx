@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft,
     ChevronRight,
     Loader2,
-    User,
     Briefcase,
-    FileText,
-    Calendar,
-    MapPin,
-    Phone,
-    Mail,
-    CreditCard,
-    Globe,
     CheckCircle2,
     Upload,
     Eye
@@ -37,13 +29,28 @@ const CustomerDetailView = () => {
 
 
 
+
+
+    const fetchDocuments = useCallback(async () => {
+        try {
+            const response = await CustomerApi.getCustomerDocuments(id);
+
+            if (response.data.success) {
+                setDocuments(response.data.data);
+            }
+        } catch (err) {
+            console.error("Error fetching documents:", err);
+        }
+    }, [id]);
+
+
+
     useEffect(() => {
         const fetchCustomerDetails = async () => {
             setLoading(true);
             try {
                 const EmployeeID = localStorage.getItem('EmployeeID');
                 const response = await CustomerApi.getCustomerById(id, EmployeeID);
-                console.log("response", response);
 
                 if (response.data.success) {
                     setCustomer(response.data.data);
@@ -62,18 +69,8 @@ const CustomerDetailView = () => {
             fetchCustomerDetails();
             fetchDocuments();
         }
-    }, [id]);
 
-    const fetchDocuments = async () => {
-        try {
-            const response = await CustomerApi.getCustomerDocuments(id);
-            if (response.data.success) {
-                setDocuments(response.data.data);
-            }
-        } catch (err) {
-            console.error("Error fetching documents:", err);
-        }
-    };
+    }, [id, fetchDocuments]);
 
     const handleUploadClick = (type) => {
         setSelectedDocType(type);

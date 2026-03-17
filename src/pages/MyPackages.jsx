@@ -11,7 +11,7 @@ const getOrderStatusLabel = (statusValue) => {
   const found = orderStatusList.find((s) => s.value === statusValue);
   return found ? found.label : 'Unknown';
 };
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getOrdersByCompanyId } from "../api/Orders/Order";
 import { getSecureItem } from "../utils/secureStorage";
@@ -66,7 +66,9 @@ const MyPackages = () => {
       try {
         const raw = getSecureItem("selectedCompany") || window.localStorage.getItem("selectedCompany") || window.sessionStorage.getItem("selectedCompany");
         parsed = raw && typeof raw === "string" ? JSON.parse(raw) : raw;
-      } catch {}
+      } catch (error) {
+        console.error("Error parsing selected company:", error);
+      }
       setSelectedCompany(parsed);
       setPage(1);
     };
@@ -89,25 +91,29 @@ const MyPackages = () => {
     { key: "OrderID", header: "Order ID" },
     { key: "PackageName", header: "Package Name", render: (row) => row.PackageName || row.PackageTitle || "Unnamed Package" },
     { key: "totalAmount", header: "Total Amount", render: (row) => `₹${row.TotalAmount || row.totalAmount || "N/A"}` },
-    { key: "OrderStatus", header: "Status", render: (row) => {
-      const label = getOrderStatusLabel(row.OrderStatus);
-      let colorClass = "text-gray-700";
-      if (row.OrderStatus === 1) colorClass = "text-blue-600  bg-blue-200 px-2 py-1 rounded-full";
-      if (row.OrderStatus === 2) colorClass = "text-green-600 bg-green-200 px-2 py-1 rounded-full";
-      if (row.OrderStatus === 3) colorClass = "text-yellow-600 bg-yellow-200 px-2 py-1 rounded-full";
-      if (row.OrderStatus === 4) colorClass = "text-orange-600 bg-orange-200 px-2 py-1 rounded-full";
-      if (row.OrderStatus === 5) colorClass = "text-purple-600 bg-purple-200 px-2 py-1 rounded-full";
-      return <span className={colorClass}>{label}</span>;
-    } },
+    {
+      key: "OrderStatus", header: "Status", render: (row) => {
+        const label = getOrderStatusLabel(row.OrderStatus);
+        let colorClass = "text-gray-700";
+        if (row.OrderStatus === 1) colorClass = "text-blue-600  bg-blue-200 px-2 py-1 rounded-full";
+        if (row.OrderStatus === 2) colorClass = "text-green-600 bg-green-200 px-2 py-1 rounded-full";
+        if (row.OrderStatus === 3) colorClass = "text-yellow-600 bg-yellow-200 px-2 py-1 rounded-full";
+        if (row.OrderStatus === 4) colorClass = "text-orange-600 bg-orange-200 px-2 py-1 rounded-full";
+        if (row.OrderStatus === 5) colorClass = "text-purple-600 bg-purple-200 px-2 py-1 rounded-full";
+        return <span className={colorClass}>{label}</span>;
+      }
+    },
     { key: "CreatedAt", header: "Ordered On", render: (row) => row.CreatedAt ? new Date(row.CreatedAt).toLocaleDateString() : "N/A" },
-    { key: "action", header: "Action", render: (row) => (
-      <button
-        onClick={() => navigate("/dashboard/bizpoleone/orderdetails", { state: { order: row } })}
-        className="px-3 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-600 transition"
-      >
-        View Details
-      </button>
-    ) },
+    {
+      key: "action", header: "Action", render: (row) => (
+        <button
+          onClick={() => navigate("/dashboard/bizpoleone/orderdetails", { state: { order: row } })}
+          className="px-3 py-2 bg-yellow-500 text-black rounded-full hover:bg-yellow-600 transition"
+        >
+          View Details
+        </button>
+      )
+    },
   ];
 
   return (

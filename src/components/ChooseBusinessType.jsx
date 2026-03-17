@@ -87,7 +87,7 @@ const ChooseBusinessType = ({ onBack }) => {
                 let allSuggested = [];
                 if (suggested) {
                   // Split on common delimiters (or, /, (,), ,)
-                  let base = suggested.split(/\s*[,/()\-]|\s+or\s+/i).map(s => s.trim()).filter(Boolean);
+                  let base = suggested.split(/\s*[,/()-]|\s+or\s+/i).map(s => s.trim()).filter(Boolean);
                   // Add original and normalized
                   base.push(suggested);
                   // Add some common replacements

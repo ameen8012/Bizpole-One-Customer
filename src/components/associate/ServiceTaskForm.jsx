@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Upload, Info, Loader2, CheckCircle2, AlertCircle, Layout, Eye } from 'lucide-react';
 import { serviceFormSave, updateRejectedFields } from '../../api/Services/ServiceDetails';

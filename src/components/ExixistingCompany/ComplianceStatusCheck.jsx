@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { upsertRegistrationStatus } from "../../api/CompanyApi";
 import { useNavigate } from "react-router-dom";
 
 const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
-    // Debug: Check registrationStatus prop received from RegistrationStatusForm
-    console.log("[ComplianceStatusCheck] registrationStatus prop:s", onNext, onPrev, registrationStatusObj);
+  // Debug: Check registrationStatus prop received from RegistrationStatusForm
+  console.log("[ComplianceStatusCheck] registrationStatus prop:s", onNext, onPrev, registrationStatusObj);
   const navigate = useNavigate(); // Initialize navigate function
   // Speech recognition hook
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
@@ -38,14 +38,14 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
   const handleStop = () => {
     SpeechRecognition.stopListening();
     if (activeField === "business") {
-      setForm((prev) => ({ 
-        ...prev, 
-        businessText: prev.businessText + (prev.businessText ? " " : "") + transcript 
+      setForm((prev) => ({
+        ...prev,
+        businessText: prev.businessText + (prev.businessText ? " " : "") + transcript
       }));
     } else if (activeField === "expectation") {
-      setForm((prev) => ({ 
-        ...prev, 
-        expectationText: prev.expectationText + (prev.expectationText ? " " : "") + transcript 
+      setForm((prev) => ({
+        ...prev,
+        expectationText: prev.expectationText + (prev.expectationText ? " " : "") + transcript
       }));
     }
     setActiveField(null);
@@ -53,7 +53,7 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
 
   const handleFinish = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!form.gstReturns || !form.booksOfAccounts || !form.auditor) {
       setError("Please fill in all required compliance fields.");
@@ -91,11 +91,15 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
       let CompanyID = null;
       try {
         CompanyID = window.localStorage.getItem("CompanyId");
-      } catch {}
+      } catch (err) {
+        console.log("❌ Error getting CompanyID from localStorage", err);
+      }
       if (!CompanyID && typeof window !== "undefined") {
         try {
           CompanyID = window.sessionStorage.getItem("CompanyId");
-        } catch {}
+        } catch (err) {
+          console.log("❌ Error getting CompanyID from sessionStorage", err);
+        }
       }
       if (CompanyID) {
         CompanyID = Number(CompanyID);
@@ -270,11 +274,10 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                       ? handleStop
                       : () => handleMicClick("business")
                   }
-                  className={`absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-black font-bold transition ${
-                    listening && activeField === "business"
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-yellow-400 hover:bg-yellow-500"
-                  }`}
+                  className={`absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-black font-bold transition ${listening && activeField === "business"
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-yellow-400 hover:bg-yellow-500"
+                    }`}
                   title={
                     listening && activeField === "business"
                       ? "Stop Recording"
@@ -310,11 +313,10 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                       ? handleStop
                       : () => handleMicClick("expectation")
                   }
-                  className={`absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-black font-bold transition ${
-                    listening && activeField === "expectation"
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-yellow-400 hover:bg-yellow-500"
-                  }`}
+                  className={`absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center text-black font-bold transition ${listening && activeField === "expectation"
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-yellow-400 hover:bg-yellow-500"
+                    }`}
                   title={
                     listening && activeField === "expectation"
                       ? "Stop Recording"

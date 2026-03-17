@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-    ChevronLeft, Loader2, FileText, AlertCircle, CheckCircle2,
-    ListChecks, FileStack, LayoutDashboard, History, Target,
-    Package, PieChart, Download, Eye, Activity
+    ChevronLeft, Loader2, FileText, AlertCircle,
+    ListChecks, FileStack, LayoutDashboard, Target,
+    Package, PieChart, Download, Eye,
 } from 'lucide-react';
-import { getServiceDetailById, getServiceDeliverablesByServiceDetailId, getServiceTasks, serviceFormMapping, serviceFormSave, getResponseFields } from '../../api/Services/ServiceDetails';
+import { getServiceDetailById, getServiceDeliverablesByServiceDetailId, serviceFormMapping, getResponseFields } from '../../api/Services/ServiceDetails';
 import { format } from 'date-fns';
 import { getSecureItem } from '../../utils/secureStorage';
 import jsPDF from 'jspdf';
@@ -25,12 +25,12 @@ const ServiceDetailView = () => {
     const [deliverables, setDeliverables] = useState([]);
     const [deliverablesLoading, setDeliverablesLoading] = useState(false);
 
-    const [tasks, setTasks] = useState([]);
-    const [tasksLoading, setTasksLoading] = useState(false);
+    // const [tasks, setTasks] = useState([]);
+    // const [tasksLoading, setTasksLoading] = useState(false);
 
     // formConfig & its loading state live here, passed as props to DocumentCollectionTab
     const [formConfig, setFormConfig] = useState(null);
-    const [formConfigLoading, setFormConfigLoading] = useState(false);
+    // const [formConfigLoading, setFormConfigLoading] = useState(false);
 
     const [responseFields, setResponseFields] = useState([]);
     const [responseFieldsLoading, setResponseFieldsLoading] = useState(false);
@@ -83,7 +83,7 @@ const ServiceDetailView = () => {
                     setService(response);
 
                     if (response.ServiceID) {
-                        setFormConfigLoading(true);
+                        // setFormConfigLoading(true);
                         try {
                             const serviceRes = await serviceFormMapping(response.ServiceID);
                             // Handle both { data: [...] } and plain array responses
@@ -95,7 +95,7 @@ const ServiceDetailView = () => {
                         } catch (formErr) {
                             console.error("serviceFormMapping error", formErr);
                         } finally {
-                            setFormConfigLoading(false);
+                            // setFormConfigLoading(false);
                         }
                     }
                 }
@@ -129,27 +129,27 @@ const ServiceDetailView = () => {
 
 
     // ── Fetch tasks (on tab switch) ──────────────────────────────────────────
-    useEffect(() => {
-        const fetchTasks = async () => {
-            if (activeTab !== 'Task Progress' || !id) return;
-            setTasksLoading(true);
-            try {
-                const user = getSecureItem("partnerUser") || {};
-                const response = await getServiceTasks({
-                    franchiseId: 1,
-                    page: 1,
-                    limit: 10,
-                    serviceDetailsId: id,
-                });
-                if (response.success) setTasks(response.data || []);
-            } catch (error) {
-                console.error("Error fetching tasks:", error);
-            } finally {
-                setTasksLoading(false);
-            }
-        };
-        fetchTasks();
-    }, [activeTab, id]);
+    // useEffect(() => {
+    //     const fetchTasks = async () => {
+    //         if (activeTab !== 'Task Progress' || !id) return;
+    //         setTasksLoading(true);
+    //         try {
+    //             // const user = getSecureItem("partnerUser") || {};
+    //             const response = await getServiceTasks({
+    //                 franchiseId: 1,
+    //                 page: 1,
+    //                 limit: 10,
+    //                 serviceDetailsId: id,
+    //             });
+    //             if (response.success) setTasks(response.data || []);
+    //         } catch (error) {
+    //             console.error("Error fetching tasks:", error);
+    //         } finally {
+    //             setTasksLoading(false);
+    //         }
+    //     };
+    //     fetchTasks();
+    // }, [activeTab, id]);
 
     // ── Fetch Response Fields (on tab switch) ───────────────────────────────
     useEffect(() => {

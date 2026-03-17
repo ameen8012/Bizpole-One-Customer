@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Loader2, Eye, Download, Pencil, Trash2, Edit2 } from 'lucide-react';
+import { Search, Filter, Loader2, Download, } from 'lucide-react';
 import { getSecureItem } from '../../utils/secureStorage';
 import { format } from 'date-fns';
 import { getQuoteStatus } from '../../api/QuoteStatusApi';
@@ -8,7 +8,6 @@ import axiosInstance from '../../api/axiosInstance';
 import DealsApi from '../../api/DealsApi';
 import AddDealModal from '../../components/Modals/AddDealModal';
 import CryptoJS from "crypto-js";
-import { useParams } from "react-router-dom";
 
 
 
@@ -24,12 +23,12 @@ const AssociateQuotes = () => {
     const [editingDeal, setEditingDeal] = useState(null);
     const [companyNames, setCompanyNames] = useState({});
     const [quoteStatuses, setQuoteStatuses] = useState({});
-    const { encryptedId } = useParams();
 
 
     const fetchDeals = async () => {
         if (activeTab !== 'requested') return;
         setLoading(true);
+        setError(null);
         try {
             const user = getSecureItem("partnerUser") || {};
             const AssociateID = user.id || localStorage.getItem("AssociateID");
@@ -55,9 +54,9 @@ const AssociateQuotes = () => {
                 setDeals(requestedDeals);
 
                 // Fetch company names
-                requestedDeals.forEach(async (deal) => {
-                    if (deal.CompanyID && !companyNames[deal.CompanyID]) {
-                        try {
+                await Promise.all(
+                    requestedDeals.map(async (deal) => {
+                        if (deal.CompanyID && !companyNames[deal.CompanyID]) {
                             const compResult = await DealsApi.getCompanyDetails(deal.CompanyID);
                             if (compResult.success && compResult.data) {
                                 setCompanyNames(prev => ({
@@ -65,11 +64,9 @@ const AssociateQuotes = () => {
                                     [deal.CompanyID]: compResult.data.BusinessName
                                 }));
                             }
-                        } catch (e) {
-                            console.warn("Failed fetch company name", deal.CompanyID, e);
                         }
-                    }
-                });
+                    })
+                );
             }
         } catch (err) {
             console.error("fetchDeals error", err);
@@ -132,12 +129,13 @@ const AssociateQuotes = () => {
         } else {
             fetchQuotes();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
 
 
 
-  const encrypt = (id) => {
+    const encrypt = (id) => {
         const secret =
             import.meta.env.VITE_QUOTE_LINK_SECRET ||
             "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
@@ -201,6 +199,12 @@ const AssociateQuotes = () => {
                     </p>
                 </div>
             </div>
+
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm">
+                    {error}
+                </div>
+            )}
 
             {/* TABS */}
             <div className="flex gap-4 border-b border-slate-200">
@@ -289,7 +293,7 @@ const AssociateQuotes = () => {
                                 ) : (
                                     filteredDeals.map((deal, index) => (
 
-                                        console.log("LLLLL", { deal }),
+
 
                                         <tr key={deal.id} className="hover:bg-slate-50/50 transition-colors cursor-default">
                                             <td className="px-6 py-4 text-slate-400 text-xs font-medium">{index + 1}</td>
@@ -405,7 +409,7 @@ const AssociateQuotes = () => {
                                     filteredQuotes.map((quote, index) => (
                                         <tr key={quote.QuoteID} className="hover:bg-slate-50 transition">
                                             <td className="px-4 py-3">{index + 1}</td>
-                                            <td 
+                                            <td
                                                 className="px-4 py-3 font-semibold text-[#4b49ac] hover:underline cursor-pointer"
                                                 onClick={() => navigate(`/associate/quotes/${quote.QuoteID}`)}
                                             >

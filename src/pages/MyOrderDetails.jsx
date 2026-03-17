@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { data, useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { initPayment } from '../api/Orders/Order';
 import { motion } from 'framer-motion';
-import { 
-  Download, 
-  MessageCircle, 
-  Package, 
-  Calendar, 
-  Clock, 
+import {
+  Download,
+  MessageCircle,
+  Calendar,
+  Clock,
   ChevronRight,
   FileText,
   CreditCard,
@@ -35,14 +34,14 @@ const MyOrderDetails = () => {
   // Get order data from navigation state
   const order = location.state?.order || {};
   const IsIndividual = location.state?.IsIndividual || 0;
-  console.log(order,"shuttuuuuuuuuu");
- 
-  
-  
+  console.log(order, "shuttuuuuuuuuu");
+
+
+
   const isIndividualService = IsIndividual === 1; // Check if it's individual service
 
   console.log("Order Data:", order);
-  
+
   // Timeline steps by status value
   const getTimelineSteps = (statusValue) => {
     const steps = [
@@ -52,14 +51,14 @@ const MyOrderDetails = () => {
       { stage: "Payment Pending", key: 4 },
       { stage: "Payment Done", key: 5 },
     ];
-    
+
     let completedIdx = 0;
     if (statusValue === 1) completedIdx = 1; // In Progress
     else if (statusValue === 2) completedIdx = 2; // Completed
     else if (statusValue === 3) completedIdx = 0; // Pending
     else if (statusValue === 4) completedIdx = 3; // Completed, Payment Pending
     else if (statusValue === 5) completedIdx = 4; // Completed, Payment Done
-    
+
     return steps.map((step, idx) => ({
       ...step,
       completed: idx <= completedIdx,
@@ -113,7 +112,7 @@ const MyOrderDetails = () => {
   };
 
 
-    const orderItems = getOrderItems();
+  const orderItems = getOrderItems();
 
 
   const timelineSteps = getTimelineSteps(order.OrderStatus || order.Status);
@@ -127,7 +126,7 @@ const MyOrderDetails = () => {
   // Status colors mapping
   const statusColors = {
     1: "bg-blue-100 text-blue-800",
-    2: "bg-green-100 text-green-800", 
+    2: "bg-green-100 text-green-800",
     3: "bg-yellow-100 text-yellow-800",
     4: "bg-orange-100 text-orange-800",
     5: "bg-purple-100 text-purple-800",
@@ -220,7 +219,7 @@ const MyOrderDetails = () => {
   };
 
   // Get all ServiceDetails for both individual and package orders
- 
+
   const totalAmount = orderItems.reduce((sum, item) => sum + (item.total || 0), 0) || order.TotalAmount || order.totalAmount || 0;
 
   // Check if any service has a pending amount
@@ -228,7 +227,7 @@ const MyOrderDetails = () => {
 
   if (!order || !order.OrderID) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         className="min-h-screen flex items-center justify-center p-4"
@@ -249,7 +248,7 @@ const MyOrderDetails = () => {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="min-h-screen p-4 md:p-8"
@@ -264,7 +263,7 @@ const MyOrderDetails = () => {
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
-          Back 
+          Back
         </motion.button>
 
         {/* Header */}
@@ -280,9 +279,8 @@ const MyOrderDetails = () => {
             <span className="bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1.5 rounded-full">
               Order ID: {order.OrderID}
             </span>
-            <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${
-              statusColors[order.OrderStatus || order.Status] || statusColors.default
-            }`}>
+            <span className={`text-sm font-medium px-3 py-1.5 rounded-full ${statusColors[order.OrderStatus || order.Status] || statusColors.default
+              }`}>
               {getOrderStatusLabel(order.OrderStatus || order.Status)}
             </span>
             <span className="text-gray-600 flex items-center text-sm">
@@ -319,7 +317,7 @@ const MyOrderDetails = () => {
                       transition={{ duration: 0.6 }}
                       className="mr-4"
                     >
-                    
+
                     </motion.div>
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900 mb-1">
@@ -352,7 +350,7 @@ const MyOrderDetails = () => {
                       </>
                     )}
                   </h3>
-                  <motion.div 
+                  <motion.div
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -372,7 +370,7 @@ const MyOrderDetails = () => {
                             const tasks = await getServiceTasks({ serviceDetailsId: item.ServiceDetailsID });
                             setServiceTasks(tasks || []);
                           } catch (err) {
-                            setTasksError('Failed to load tasks for this service.');
+                            setTasksError('Failed to load tasks for this service.', err);
                             setServiceTasks([]);
                           } finally {
                             setTasksLoading(false);
@@ -381,22 +379,20 @@ const MyOrderDetails = () => {
                       >
                         <div className="flex-1">
                           <div className="flex items-center mb-1">
-                            <div className={`w-3 h-3 rounded-full mr-4 ${
-                              item.status === 'Completed' ? 'bg-green-400' :
+                            <div className={`w-3 h-3 rounded-full mr-4 ${item.status === 'Completed' ? 'bg-green-400' :
                               item.status === 'Pending' ? 'bg-yellow-400' :
-                              'bg-blue-400'
-                            }`} />
+                                'bg-blue-400'
+                              }`} />
                             <div>
                               <h4 className="font-medium text-gray-900">{item.name}</h4>
                               {item.description && (
                                 <p className="text-sm text-gray-500 mt-1">{item.description}</p>
                               )}
                               {!isIndividualService && item.status && (
-                                <span className={`text-xs px-2 py-1 rounded-full mt-1 inline-block ${
-                                  item.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                                <span className={`text-xs px-2 py-1 rounded-full mt-1 inline-block ${item.status === 'Completed' ? 'bg-green-100 text-green-800' :
                                   item.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                                  'bg-blue-100 text-blue-800'
-                                }`}>
+                                    'bg-blue-100 text-blue-800'
+                                  }`}>
                                   {item.status}
                                 </span>
                               )}
@@ -459,7 +455,7 @@ const MyOrderDetails = () => {
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Ordered On</span>
                       <span className="font-semibold">
-                        {order.CreatedAt || order.CreatedDate 
+                        {order.CreatedAt || order.CreatedDate
                           ? new Date(order.CreatedAt || order.CreatedDate).toLocaleDateString()
                           : 'N/A'
                         }
@@ -467,9 +463,8 @@ const MyOrderDetails = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">Status</span>
-                      <span className={`font-semibold px-3 py-1 rounded-full ${
-                        statusColors[order.OrderStatus || order.Status] || statusColors.default
-                      }`}>
+                      <span className={`font-semibold px-3 py-1 rounded-full ${statusColors[order.OrderStatus || order.Status] || statusColors.default
+                        }`}>
                         {getOrderStatusLabel(order.OrderStatus || order.Status)}
                       </span>
                     </div>
@@ -508,11 +503,11 @@ const MyOrderDetails = () => {
                 <Clock className="w-6 h-6 mr-2 text-yellow-400" />
                 Order Timeline
               </h3>
-              
+
               <div className="relative">
                 <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-yellow-200" />
-                
-                <motion.div 
+
+                <motion.div
                   variants={containerVariants}
                   initial="hidden"
                   animate="visible"
@@ -526,12 +521,11 @@ const MyOrderDetails = () => {
                     >
                       <div className="absolute left-3 -translate-x-1/2">
                         <motion.div
-                          animate={{ 
+                          animate={{
                             scale: step.completed ? [1, 1.2, 1] : 1,
                           }}
-                          className={`w-3 h-3 ml-2 rounded-full border-4 border-white ${
-                            step.completed ? 'bg-gray-900' : 'bg-gray-300'
-                          }`}
+                          className={`w-3 h-3 ml-2 rounded-full border-4 border-white ${step.completed ? 'bg-gray-900' : 'bg-gray-300'
+                            }`}
                         />
                       </div>
                       <div className="ml-12">
@@ -574,7 +568,7 @@ const MyOrderDetails = () => {
               <h3 className="text-lg font-semibold text-gray-900 pb-3 mb-4 border-b border-gray-200">
                 Actions
               </h3>
-              <motion.div 
+              <motion.div
                 className="space-y-4"
                 variants={containerVariants}
                 initial="hidden"
@@ -660,7 +654,7 @@ const MyOrderDetails = () => {
                   >
                     Cancel
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       // Add invoice download logic here
                       alert('Invoice download feature coming soon!');

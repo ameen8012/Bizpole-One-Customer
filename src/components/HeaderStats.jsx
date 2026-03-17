@@ -1,4 +1,3 @@
-import React from "react";
 import { BarChart2, DollarSign, CheckCircle } from "lucide-react";
 
 const HeaderStats = () => {

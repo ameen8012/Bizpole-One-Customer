@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, User, Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 const CalendarHeader = () => {
   return (

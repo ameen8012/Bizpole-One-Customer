@@ -1,10 +1,10 @@
 import axiosInstance from "./axiosInstance";
-import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import { getSecureItem } from "../utils/secureStorage";
 
 // Helper function to safely get user data (same as in React component)
 const getUserData = () => {
   try {
-    const userStr = getSecureItem("user" || "partnerUser");
+    const userStr = getSecureItem("user") || getSecureItem("partnerUser");
 
     // If userStr is already an object, return it directly
     if (typeof userStr === 'object' && userStr !== null) {

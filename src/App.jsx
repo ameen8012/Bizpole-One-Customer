@@ -115,7 +115,7 @@ function App() {
         setSecureItem("partnerUser", JSON.parse(partnerUser));
       }
     } catch (error) {
-      console.warn("Old user format found, clearing...");
+      console.warn("Old user format found, clearing...", error);
       localStorage.removeItem("user");
       localStorage.removeItem("partnerUser");
     }
@@ -129,79 +129,79 @@ function App() {
         <main className="flex-grow">
           <Routes>
 
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/startbusiness/*" element={<StartYourBusiness />} />
-          <Route path="/checking" element={<BusinessPanel />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/services/:id" element={<ServiceDetails />} />
-          <Route path="/products" element={<ProductList />} />
-          <Route path="/partners" element={<Partners />} />
-          <Route path="/startbusiness/about" element={<Tellabout />} />
-          <Route path="/startbusiness/subscriptions" element={<Subscription />} />
-          <Route path="/payments" element={<Payment />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/questions" element={<BusinessQuizWizard />} />
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/startbusiness/*" element={<StartYourBusiness />} />
+            <Route path="/checking" element={<BusinessPanel />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/services/:id" element={<ServiceDetails />} />
+            <Route path="/products" element={<ProductList />} />
+            <Route path="/partners" element={<Partners />} />
+            <Route path="/startbusiness/about" element={<Tellabout />} />
+            <Route path="/startbusiness/subscriptions" element={<Subscription />} />
+            <Route path="/payments" element={<Payment />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/questions" element={<BusinessQuizWizard />} />
 
-          {/* Profile */}
-          <Route path="/profile" element={<ProfileLayout />}>
-            <Route index element={<ProfilePage />} />
-            <Route path="calendar" element={<CalenderPage />} />
-            <Route path="documents" element={<ProfileDocuments />} />
-            <Route path="moderncalendar" element={<ModernCalendar />} />
-            <Route path="events" element={<ProfileEvents />} />
-            <Route path="files" element={<CustomerFiles />} />
-            <Route path="companydetails" element={<CompanyDetails />} />
-            <Route path="invoice" element={<Invoiceprofile />} />
-          </Route>
+            {/* Profile */}
+            <Route path="/profile" element={<ProfileLayout />}>
+              <Route index element={<ProfilePage />} />
+              <Route path="calendar" element={<CalenderPage />} />
+              <Route path="documents" element={<ProfileDocuments />} />
+              <Route path="moderncalendar" element={<ModernCalendar />} />
+              <Route path="events" element={<ProfileEvents />} />
+              <Route path="files" element={<CustomerFiles />} />
+              <Route path="companydetails" element={<CompanyDetails />} />
+              <Route path="invoice" element={<Invoiceprofile />} />
+            </Route>
 
-          <Route path="/existing-companies" element={<ExisitingCompanies />} />
+            <Route path="/existing-companies" element={<ExisitingCompanies />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute redirectPath="/" />}>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute redirectPath="/" />}>
 
-            {/* Main Dashboard */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              <Route index element={<DashboardMain />} />
-              <Route path="books" element={<BizpoleBooks />} />
+              {/* Main Dashboard */}
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardMain />} />
+                <Route path="books" element={<BizpoleBooks />} />
 
-              <Route path="bizpoleone" element={<BizpoleOneDashboardLayout />}>
-                <Route index element={<BizpoleOne />} />
-                <Route path="package" element={<MyPackages />} />
-                <Route path="orderdetails" element={<MyOrderDetails />} />
-                <Route path="services" element={<BizpoleOneServices />} />
-                <Route path="orders" element={<BizpoleOneServices />} />
-                <Route path="tasks" element={<BizpoleOneTasks />} />
-                <Route path="pricing" element={<Plansandpricing />} />
-                <Route path="individual" element={<MyIndividualservices />} />
-                <Route path="chat" element={<ChatPage />} />
+                <Route path="bizpoleone" element={<BizpoleOneDashboardLayout />}>
+                  <Route index element={<BizpoleOne />} />
+                  <Route path="package" element={<MyPackages />} />
+                  <Route path="orderdetails" element={<MyOrderDetails />} />
+                  <Route path="services" element={<BizpoleOneServices />} />
+                  <Route path="orders" element={<BizpoleOneServices />} />
+                  <Route path="tasks" element={<BizpoleOneTasks />} />
+                  <Route path="pricing" element={<Plansandpricing />} />
+                  <Route path="individual" element={<MyIndividualservices />} />
+                  <Route path="chat" element={<ChatPage />} />
+                </Route>
               </Route>
-            </Route>
 
-            {/* Associate Dashboard */}
-            <Route path="/associate" element={<AssociateLayout />}>
-              <Route path="dashboard" element={<AssociateDashboard />} />
-              <Route path="profile" element={<AssociateProfile />} />
-              <Route path="deals" element={<AssociateDeals />} />
-              <Route path="deals/:id" element={<DealDetailView />} />
-              <Route path="quotes" element={<AssociateQuotes />} />
-              <Route path="quotes/:id" element={<QuoteDetailView />} />
-              <Route path="orders" element={<AssociateOrders />} />
-              <Route path="orders/:id" element={<OrderDetailView />} />
-              <Route path="services" element={<AssociateServices />} />
-              <Route path="services/:id" element={<ServiceDetailView />} />
-              <Route path="customers" element={<AssociateCustomers />} />
-              <Route path="customers/:id" element={<CustomerDetailView />} />
-              <Route path="companies" element={<AssociateCompanies />} />
-              <Route path="companies/:id" element={<CompanyDetailView />} />
-              <Route path="receipts" element={<AssociateReceipts />} />
-              <Route path="invoices" element={<AssociateInvoices />} />
-              <Route path="explore-services" element={<ExploreServices />} />
-            </Route>
+              {/* Associate Dashboard */}
+              <Route path="/associate" element={<AssociateLayout />}>
+                <Route path="dashboard" element={<AssociateDashboard />} />
+                <Route path="profile" element={<AssociateProfile />} />
+                <Route path="deals" element={<AssociateDeals />} />
+                <Route path="deals/:id" element={<DealDetailView />} />
+                <Route path="quotes" element={<AssociateQuotes />} />
+                <Route path="quotes/:id" element={<QuoteDetailView />} />
+                <Route path="orders" element={<AssociateOrders />} />
+                <Route path="orders/:id" element={<OrderDetailView />} />
+                <Route path="services" element={<AssociateServices />} />
+                <Route path="services/:id" element={<ServiceDetailView />} />
+                <Route path="customers" element={<AssociateCustomers />} />
+                <Route path="customers/:id" element={<CustomerDetailView />} />
+                <Route path="companies" element={<AssociateCompanies />} />
+                <Route path="companies/:id" element={<CompanyDetailView />} />
+                <Route path="receipts" element={<AssociateReceipts />} />
+                <Route path="invoices" element={<AssociateInvoices />} />
+                <Route path="explore-services" element={<ExploreServices />} />
+              </Route>
 
-          </Route>
+            </Route>
           </Routes>
         </main>
 

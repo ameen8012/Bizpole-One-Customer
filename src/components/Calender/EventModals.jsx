@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Clock, Users, FileText, MapPin, User, Video, Phone, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
-import { EVENT_TYPES, MEETING_TYPES } from './constants';
+import { X, Clock, Users, FileText, User, Calendar as CalendarIcon } from 'lucide-react';
+import { EVENT_TYPES } from './constants';
 import { format } from 'date-fns';
 
 export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDeleteEvent }) => {
   if (!selectedEvent) return null;
   const eventType = EVENT_TYPES[selectedEvent.type] || EVENT_TYPES.MEETING;
-  const meetingType = MEETING_TYPES[selectedEvent.meetingType] || MEETING_TYPES.IN_PERSON;
-  
+  // const meetingType = MEETING_TYPES[selectedEvent.meetingType] || MEETING_TYPES.IN_PERSON;
+
   const getEventIcon = () => {
     switch (selectedEvent.type) {
       case "MEETING": return <Users size={14} />;
@@ -18,26 +18,26 @@ export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDelet
       default: return <Users size={14} />;
     }
   };
-  
-  const getMeetingTypeIcon = () => {
-    switch (selectedEvent.meetingType) {
-      case "IN_PERSON": return <MapPin size={18} />;
-      case "VIDEO": return <Video size={18} />;
-      case "PHONE": return <Phone size={18} />;
-      default: return <MapPin size={18} />;
-    }
-  };
-  
+
+  // const getMeetingTypeIcon = () => {
+  //   switch (selectedEvent.meetingType) {
+  //     case "IN_PERSON": return <MapPin size={18} />;
+  //     case "VIDEO": return <Video size={18} />;
+  //     case "PHONE": return <Phone size={18} />;
+  //     default: return <MapPin size={18} />;
+  //   }
+  // };
+
   return (
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
         onClick={() => setSelectedEvent(null)}
       >
-        <motion.div 
+        <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
@@ -47,7 +47,7 @@ export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDelet
           <div className="p-6">
             <div className="flex justify-between items-start mb-6">
               <h3 className="text-xl font-bold text-gray-800">Event Details</h3>
-              <button 
+              <button
                 onClick={() => setSelectedEvent(null)}
                 className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
               >
@@ -81,13 +81,12 @@ export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDelet
               {/* Priority */}
               <div className="flex items-center text-gray-700">
                 <span className="font-medium mr-2">Priority:</span>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                  selectedEvent.priority === 'High' 
-                    ? 'bg-red-100 text-red-800' 
-                    : selectedEvent.priority === 'Medium'
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedEvent.priority === 'High'
+                  ? 'bg-red-100 text-red-800'
+                  : selectedEvent.priority === 'Medium'
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-green-100 text-green-800'
-                }`}>
+                  }`}>
                   {selectedEvent.priority || 'Medium'}
                 </span>
               </div>
@@ -96,13 +95,12 @@ export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDelet
                 <div className="text-gray-700 font-medium mb-2">On these days</div>
                 <div className="flex gap-2">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                    <div 
-                      key={day} 
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                        selectedEvent.days && selectedEvent.days.includes(day) 
-                          ? 'bg-amber-500 text-white' 
-                          : 'bg-gray-100 text-gray-400'
-                      }`}
+                    <div
+                      key={day}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${selectedEvent.days && selectedEvent.days.includes(day)
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-gray-100 text-gray-400'
+                        }`}
                     >
                       {day[0]}
                     </div>
@@ -138,10 +136,10 @@ export const EventDetailsModal = ({ selectedEvent, setSelectedEvent, handleDelet
 
 export const AddEventModal = ({ showEventModal, setShowEventModal, newEvent, setNewEvent, handleAddEvent }) => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  
+
   // Ensure newEvent.days is always an array
   const safeDays = Array.isArray(newEvent.days) ? newEvent.days : [];
-  
+
   const toggleDay = (day) => {
     if (safeDays.includes(day)) {
       setNewEvent({
@@ -155,25 +153,25 @@ export const AddEventModal = ({ showEventModal, setShowEventModal, newEvent, set
       });
     }
   };
-  
+
   const toggleRepeat = () => {
     setNewEvent({
       ...newEvent,
       repeat: !newEvent.repeat
     });
   };
-  
+
   return (
     <AnimatePresence>
       {showEventModal && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-center z-50 p-4"
           onClick={() => setShowEventModal(false)}
         >
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -183,26 +181,26 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-gray-800">Add Event</h3>
-                <button 
+                <button
                   onClick={() => setShowEventModal(false)}
                   className="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100"
                 >
                   <X size={20} />
                 </button>
               </div>
-              
+
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Event Name</label>
                   <input
                     type="text"
                     value={newEvent.title || ''}
-                    onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     className="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     placeholder="Meeting"
                   />
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
@@ -214,9 +212,9 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                         const updatedStart = new Date(date);
                         const updatedEnd = new Date(date);
                         updatedEnd.setHours(updatedEnd.getHours() + 1);
-                        
+
                         setNewEvent({
-                          ...newEvent, 
+                          ...newEvent,
                           start: updatedStart,
                           end: updatedEnd
                         });
@@ -224,7 +222,7 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                       className="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     />
                   </div>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Time</label>
                     <input
@@ -234,12 +232,12 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                         const [hours, minutes] = e.target.value.split(':');
                         const updatedStart = new Date(newEvent.start);
                         updatedStart.setHours(parseInt(hours), parseInt(minutes));
-                        
+
                         const updatedEnd = new Date(updatedStart);
                         updatedEnd.setHours(updatedEnd.getHours() + 1);
-                        
+
                         setNewEvent({
-                          ...newEvent, 
+                          ...newEvent,
                           start: updatedStart,
                           end: updatedEnd
                         });
@@ -248,23 +246,23 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                   <textarea
                     value={newEvent.description || ''}
-                    onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                     className="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     rows="3"
                     placeholder="Add some description of the event"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
                   <select
                     value={newEvent.priority || 'Medium'}
-                    onChange={(e) => setNewEvent({...newEvent, priority: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, priority: e.target.value })}
                     className="w-full p-3.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                   >
                     <option value="Low">Low</option>
@@ -272,7 +270,7 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                     <option value="High">High</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">On these days</label>
                   <div className="flex gap-2">
@@ -281,36 +279,33 @@ className="fixed inset-0 bg-black/50 backdrop-blur-md flex items-center justify-
                         key={day}
                         type="button"
                         onClick={() => toggleDay(day)}
-                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-                          safeDays.includes(day) 
-                            ? 'bg-amber-500 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${safeDays.includes(day)
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
                       >
                         {day[0]}
                       </button>
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="flex items-center">
                   <button
                     type="button"
                     onClick={toggleRepeat}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full mr-3 ${
-                      newEvent.repeat ? 'bg-amber-500' : 'bg-gray-300'
-                    }`}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full mr-3 ${newEvent.repeat ? 'bg-amber-500' : 'bg-gray-300'
+                      }`}
                   >
                     <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        newEvent.repeat ? 'translate-x-6' : 'translate-x-1'
-                      }`}
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newEvent.repeat ? 'translate-x-6' : 'translate-x-1'
+                        }`}
                     />
                   </button>
                   <span className="text-gray-700 font-medium">Repeat every day</span>
                 </div>
               </div>
-              
+
               <div className="mt-8">
                 <button
                   onClick={handleAddEvent}

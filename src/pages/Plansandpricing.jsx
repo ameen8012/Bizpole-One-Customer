@@ -11,8 +11,7 @@ import { setSecureItem, getSecureItem } from "../utils/secureStorage";
 const PlansAndPricing = () => {
   const [activeTab, setActiveTab] = useState("packages");
   const navigate = useNavigate();
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [selectedServices, setSelectedServices] = useState([]);
+  // const [selectedServices, setSelectedServices] = useState([]);
 
   const [packages, setPackages] = useState([]);
   const [services, setServices] = useState([]);
@@ -38,11 +37,11 @@ const PlansAndPricing = () => {
       // Always send the package's services as ServiceDetails in the payload
       const serviceDetailsArr = Array.isArray(plan.services)
         ? plan.services.map((s) => ({
-            ServiceID: s.ServiceID,
-            ServiceName: s.ServiceName || s.name,
-            Price: s.Price || s.price || 0,
-            Description: s.Description || s.description || '',
-          }))
+          ServiceID: s.ServiceID,
+          ServiceName: s.ServiceName || s.name,
+          Price: s.Price || s.price || 0,
+          Description: s.Description || s.description || '',
+        }))
         : [];
 
       const quoteData = {
@@ -76,55 +75,55 @@ const PlansAndPricing = () => {
   };
 
   // 🔹 Toggle service selection
-  const toggleServiceSelection = (service) => {
-    setSelectedServices((prev) =>
-      prev.find((s) => s.ID === service.ID)
-        ? prev.filter((s) => s.ID !== service.ID)
-        : [...prev, service]
-    );
-  };
+  // const toggleServiceSelection = (service) => {
+  //   setSelectedServices((prev) =>
+  //     prev.find((s) => s.ID === service.ID)
+  //       ? prev.filter((s) => s.ID !== service.ID)
+  //       : [...prev, service]
+  //   );
+  // };
 
   // 🔹 Create quote for services
-  const handleServicesQuote = async () => {
-    if (selectedServices.length === 0) {
-      toast.info("Please select at least one service");
-      return;
-    }
+  // const handleServicesQuote = async () => {
+  //   if (selectedServices.length === 0) {
+  //     toast.info("Please select at least one service");
+  //     return;
+  //   }
 
-    try {
-      const totalAmount = selectedServices.reduce(
-        (sum, s) => sum + (s.Price || s.price || 0),
-        0
-      );
+  //   try {
+  //     const totalAmount = selectedServices.reduce(
+  //       (sum, s) => sum + (s.Price || s.price || 0),
+  //       0
+  //     );
 
-      const quoteData = {
-        services: selectedServices.map((s) => ({
-          serviceId: s.ID,
-          serviceName: s.ServiceName,
-          price: s.Price || s.price,
-        })),
-        amount: totalAmount,
-        type: "individual",
-      };
+  //     const quoteData = {
+  //       services: selectedServices.map((s) => ({
+  //         serviceId: s.ID,
+  //         serviceName: s.ServiceName,
+  //         price: s.Price || s.price,
+  //       })),
+  //       amount: totalAmount,
+  //       type: "individual",
+  //     };
 
-      quoteData.is_manual = 0;
-      const data = await upsertQuote(quoteData);
-      if (data && data.QuoteID) {
-        const user = getSecureItem("user");
-        if (user) {
-          user.QuoteID = data.QuoteID;
-          setSecureItem("user", user);
-        }
-      }
+  //     quoteData.is_manual = 0;
+  //     const data = await upsertQuote(quoteData);
+  //     if (data && data.QuoteID) {
+  //       const user = getSecureItem("user");
+  //       if (user) {
+  //         user.QuoteID = data.QuoteID;
+  //         setSecureItem("user", user);
+  //       }
+  //     }
 
-      toast.dismiss();
-      toast.success(`Services quote created! QuoteCode: ${data.QuoteCode}`);
-    } catch (err) {
-      console.error("Error creating services quote:", err);
-      toast.dismiss();
-      toast.error("Failed to create services quote.");
-    }
-  };
+  //     toast.dismiss();
+  //     toast.success(`Services quote created! QuoteCode: ${data.QuoteCode}`);
+  //   } catch (err) {
+  //     console.error("Error creating services quote:", err);
+  //     toast.dismiss();
+  //     toast.error("Failed to create services quote.");
+  //   }
+  // };
 
   // 🔹 Fetch business types
   useEffect(() => {
@@ -148,9 +147,9 @@ const PlansAndPricing = () => {
         // Get serviceTypeId from localStorage or use default
         const loc = getSecureItem("location");
         let serviceTypeId = loc?.serviceTypeId || loc?.type || 29;
-        
+
         console.log('Fetching data for serviceTypeId:', serviceTypeId);
-        
+
         if (!serviceTypeId) {
           console.warn('No serviceTypeId found');
           setPackages([]);
@@ -164,7 +163,7 @@ const PlansAndPricing = () => {
 
         // Handle different response structures
         let packagesArr = [];
-        
+
         if (Array.isArray(data)) {
           packagesArr = data;
         } else if (data && Array.isArray(data.data)) {
@@ -187,7 +186,7 @@ const PlansAndPricing = () => {
           }
           return acc;
         }, []);
-        
+
         setServices(allServices);
         console.log('Extracted services:', allServices);
 
@@ -207,11 +206,11 @@ const PlansAndPricing = () => {
   }, [selectedTypeId]);
 
   // 🔹 Calculate total selected services
-  const calculateTotal = () =>
-    selectedServices.reduce(
-      (sum, s) => sum + (s.Price || s.price || 0),
-      0
-    );
+  // const calculateTotal = () =>
+  //   selectedServices.reduce(
+  //     (sum, s) => sum + (s.Price || s.price || 0),
+  //     0
+  //   );
 
   // 🔹 Switch between tabs (navigate for services)
   const handleTabClick = (tab) => {
@@ -327,21 +326,19 @@ const PlansAndPricing = () => {
           <div className="bg-white rounded-full p-1 shadow-lg inline-flex">
             <button
               onClick={() => handleTabClick("packages")}
-              className={`px-8 py-3 rounded-full font-semibold transition-all ${
-                activeTab === "packages"
-                  ? "bg-[#F3C625] text-black shadow-md"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-8 py-3 rounded-full font-semibold transition-all ${activeTab === "packages"
+                ? "bg-[#F3C625] text-black shadow-md"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Packages
             </button>
             <button
               onClick={() => handleTabClick("services")}
-              className={`px-8 py-3 rounded-full font-semibold transition-all ${
-                activeTab === "services"
-                  ? "bg-[#F3C625] text-black shadow-md"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-8 py-3 rounded-full font-semibold transition-all ${activeTab === "services"
+                ? "bg-[#F3C625] text-black shadow-md"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Individual Services
             </button>
@@ -359,8 +356,8 @@ const PlansAndPricing = () => {
         {error && (
           <div className="text-center py-20">
             <p className="text-red-500 text-lg">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
+            <button
+              onClick={() => window.location.reload()}
               className="mt-4 bg-[#F3C625] text-black px-6 py-2 rounded-lg font-semibold"
             >
               Retry

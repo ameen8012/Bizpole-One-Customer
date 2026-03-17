@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { upsertCompany } from "../../api/CompanyApi";
 import { getSecureItem } from "../../utils/secureStorage";
 
 const DirectorPromoterForm = ({ onNext, onBack }) => {
   const [count, setCount] = useState(1);
   const [directors, setDirectors] = useState([
-    { 
-      fullName: "", 
-      designation: "", 
-      din: "", 
-      mobile: "", 
-      email: "", 
-      pan: "", 
+    {
+      fullName: "",
+      designation: "",
+      din: "",
+      mobile: "",
+      email: "",
+      pan: "",
       aadhaar: "",
       isPrimary: true
     },
@@ -24,19 +24,19 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
   const handleCountChange = (e) => {
     const newCount = Number(e.target.value);
     setCount(newCount);
-    
+
     setDirectors((prev) => {
       if (newCount > prev.length) {
         // Add new directors
         const newDirectors = [...prev];
         for (let i = prev.length; i < newCount; i++) {
           newDirectors.push({
-            fullName: "", 
-            designation: "", 
-            din: "", 
-            mobile: "", 
-            email: "", 
-            pan: "", 
+            fullName: "",
+            designation: "",
+            din: "",
+            mobile: "",
+            email: "",
+            pan: "",
             aadhaar: "",
             isPrimary: i === 0 // First one remains primary
           });
@@ -166,7 +166,7 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
       // Safely retrieve and parse company info from secure storage
       const storedCompany = getSecureItem("companyInfo");
       console.log(storedCompany, 'companyDetails');
-      
+
       let companyInfo = null;
 
       if (storedCompany) {
@@ -192,7 +192,7 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
       }
 
       // Map directors → Customers array
-      const Customers = directors.map((d, index) => ({
+      const Customers = directors.map((d) => ({
         FirstName: d.fullName.split(' ')[0] || "",
         LastName: d.fullName.split(' ').slice(1).join(' ') || "",
         DateOfBirth: "",
@@ -309,9 +309,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
                     }
                     onBlur={() => handleBlur(idx, "fullName")}
                     placeholder="e.g. John Doe"
-                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                      hasError(idx, "fullName") ? "border-red-500" : "border-yellow-400"
-                    }`}
+                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError(idx, "fullName") ? "border-red-500" : "border-yellow-400"
+                      }`}
                     disabled={loading}
                   />
                   {hasError(idx, "fullName") && (
@@ -331,9 +330,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
                       handleDirectorChange(idx, "designation", e.target.value)
                     }
                     onBlur={() => handleBlur(idx, "designation")}
-                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                      hasError(idx, "designation") ? "border-red-500" : "border-yellow-400"
-                    }`}
+                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError(idx, "designation") ? "border-red-500" : "border-yellow-400"
+                      }`}
                     disabled={loading}
                   >
                     <option value="">Select Designation</option>
@@ -380,9 +378,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
                     }
                     onBlur={() => handleBlur(idx, "mobile")}
                     placeholder="e.g. 9876543210"
-                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                      hasError(idx, "mobile") ? "border-red-500" : "border-yellow-400"
-                    }`}
+                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError(idx, "mobile") ? "border-red-500" : "border-yellow-400"
+                      }`}
                     disabled={loading}
                   />
                   {hasError(idx, "mobile") && (
@@ -402,9 +399,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
                     }
                     onBlur={() => handleBlur(idx, "email")}
                     placeholder="e.g. john@gmail.com"
-                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                      hasError(idx, "email") ? "border-red-500" : "border-yellow-400"
-                    }`}
+                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError(idx, "email") ? "border-red-500" : "border-yellow-400"
+                      }`}
                     disabled={loading}
                   />
                   {hasError(idx, "email") && (
@@ -424,9 +420,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
                     }
                     onBlur={() => handleBlur(idx, "pan")}
                     placeholder="e.g. ABCDE1234F"
-                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${
-                      hasError(idx, "pan") ? "border-red-500" : "border-yellow-400"
-                    }`}
+                    className={`w-full border-2 rounded-full px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500 ${hasError(idx, "pan") ? "border-red-500" : "border-yellow-400"
+                      }`}
                     disabled={loading}
                   />
                   {hasError(idx, "pan") && (

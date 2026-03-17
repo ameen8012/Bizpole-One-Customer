@@ -1,5 +1,4 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 
@@ -49,7 +48,7 @@ const BizpoleOne = () => {
 
           {/* Services */}
           <ServicesTable />
-        </div>  
+        </div>
 
         {/* Right Column */}
         <div className="space-y-4 md:space-y-6 mt-6 lg:mt-0">

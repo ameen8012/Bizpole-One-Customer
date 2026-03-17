@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ChevronDown, Loader2, Search, Building2, Users, Plus, Trash2, CheckCircle, Smartphone, Mail, MapPin, Globe } from "lucide-react";
+import { X, Loader2, Search, Building2, Users, Plus, Trash2, CheckCircle, Smartphone, Mail, Globe } from "lucide-react";
 import locationData from "../../utils/statesAndDistricts.json";
 import DealsApi from "../../api/DealsApi";
 import { getSecureItem } from "../../utils/secureStorage";
@@ -12,7 +12,6 @@ const ExistingEntityDropdown = ({ type, onSelect, onClose, apiUrl }) => {
     const [results, setResults] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const dropdownRef = useRef(null);
-    const searchTimeout = useRef(null);
 
     const fetchEntities = useCallback(async (searchQuery) => {
         setIsLoading(true);
@@ -377,7 +376,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                 toast.error(result.message || (companyData.CompanyID ? "Failed to update company" : "Failed to add company"));
             }
         } catch (err) {
-            toast.error("Error connecting to server");
+            toast.error("Error connecting to server", err);
         } finally {
             setIsSubmitting(false);
         }
@@ -614,7 +613,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                     </div>
                                 </div>
 
-                                {customers.map((customer, index) => (
+                                {customers.map((customer) => (
                                     <motion.div
                                         key={customer.id}
                                         layout

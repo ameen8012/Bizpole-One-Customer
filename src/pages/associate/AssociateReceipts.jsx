@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Loader2, ChevronLeft, ChevronRight, Download, X } from 'lucide-react';
 import { getSecureItem } from '../../utils/secureStorage';
 import { format } from 'date-fns';
 import { listAssociateReceipts, getAssociateReceiptDetails } from '../../api/AssociateApi';
-import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -20,9 +19,8 @@ const AssociateReceipts = () => {
     const [selectedReceipt, setSelectedReceipt] = useState(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
-    const navigate = useNavigate();
 
-    const fetchReceipts = async () => {
+    const fetchReceipts = useCallback(async () => {
         setLoading(true);
         try {
             const user = getSecureItem("partnerUser") || {};
@@ -30,14 +28,11 @@ const AssociateReceipts = () => {
 
             const response = await listAssociateReceipts({
                 isAssociate: true,
-                AssociateID: AssociateID,
+                AssociateID,
                 limit: pageSize,
                 page: currentPage,
                 search: searchTerm,
             });
-
-            console.log("responseLL", response);
-
 
             if (response.success) {
                 setReceipts(response.data);
@@ -48,11 +43,11 @@ const AssociateReceipts = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [currentPage, searchTerm]);
 
     useEffect(() => {
         fetchReceipts();
-    }, [currentPage]);
+    }, [fetchReceipts]);
 
     const handleSearch = (e) => {
         if (e.key === 'Enter') {

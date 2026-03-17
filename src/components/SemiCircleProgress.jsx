@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 
 const SemiCircularProgress = ({
@@ -30,9 +29,8 @@ const SemiCircularProgress = ({
 
         {/* Background semi-circle */}
         <path
-          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${
-            size - strokeWidth / 2
-          } ${size / 2}`}
+          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2
+            } ${size / 2}`}
           stroke="#E5E7EB"
           strokeWidth={strokeWidth}
           fill="none"
@@ -41,9 +39,8 @@ const SemiCircularProgress = ({
 
         {/* Animated progress semi-circle */}
         <motion.path
-          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${
-            size - strokeWidth / 2
-          } ${size / 2}`}
+          d={`M ${strokeWidth / 2} ${size / 2} A ${radius} ${radius} 0 0 1 ${size - strokeWidth / 2
+            } ${size / 2}`}
           stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth}
           fill="none"

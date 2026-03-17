@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, FileText, User, Calendar as CalendarIcon, MapPin, Video, Phone } from 'lucide-react';
 
 export const MeetingIcon = () => <Users size={14} />;

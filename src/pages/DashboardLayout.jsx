@@ -1,12 +1,10 @@
-import React, { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext } from "react";
 import { setSecureItem, getSecureItem } from "../utils/secureStorage";
 import { Outlet, NavLink } from "react-router-dom";
 import {
-  BarChart3,
   BookOpen,
   Layers,
   Bell,
-  User,
   ChevronDown,
   Menu,
   X,
@@ -30,7 +28,6 @@ const DashboardLayout = () => {
   const [showCompanyDropdown, setShowCompanyDropdown] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [quotes, setQuotes] = useState([]);
-  const [showQuoteDropdown, setShowQuoteDropdown] = useState(false);
 
   // Load companies and quotes from localStorage on mount
   useEffect(() => {
@@ -69,10 +66,10 @@ const DashboardLayout = () => {
         } catch (e) {
           console.log("Error parsing user from localStorage", e);
         }
-        
+
         if (user && user.Companies && Array.isArray(user.Companies)) {
           setCompanies(user.Companies);
-          
+
           // Set default selected company to saved or first one
           let targetCompany = null;
           if (savedCompanyId && user.Companies.some(c => String(c.CompanyID) === String(savedCompanyId))) {
@@ -86,9 +83,9 @@ const DashboardLayout = () => {
             setSelectedCompanyId(targetCompany.CompanyID);
             // Load quotes for the selected company
             loadQuotesForCompany(targetCompany);
-           setSecureItem("selectedCompany", JSON.stringify({ 
-              CompanyID: targetCompany.CompanyID, 
-              CompanyName: targetCompany.BusinessName 
+            setSecureItem("selectedCompany", JSON.stringify({
+              CompanyID: targetCompany.CompanyID,
+              CompanyName: targetCompany.BusinessName
             }));
           }
         }
@@ -128,9 +125,9 @@ const DashboardLayout = () => {
     setSelectedCompany(company.BusinessName);
     setSelectedCompanyId(company.CompanyID);
     loadQuotesForCompany(company);
-    setSecureItem("selectedCompany", JSON.stringify({ 
-      CompanyID: company.CompanyID, 
-      CompanyName: company.BusinessName 
+    setSecureItem("selectedCompany", JSON.stringify({
+      CompanyID: company.CompanyID,
+      CompanyName: company.BusinessName
     }));
     setShowCompanyDropdown(false);
   };
@@ -145,12 +142,12 @@ const DashboardLayout = () => {
     window.open('/startbusiness/choose', '_blank');
   };
 
-     const encrypt = (id) => {
-            const secret =
-                import.meta.env.VITE_QUOTE_LINK_SECRET ||
-                "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
-            return CryptoJS.AES.encrypt(String(id), secret).toString();
-        };
+  const encrypt = (id) => {
+    const secret =
+      import.meta.env.VITE_QUOTE_LINK_SECRET ||
+      "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
+    return CryptoJS.AES.encrypt(String(id), secret).toString();
+  };
 
   // View quote details
   const handleViewQuote = (quote) => {
@@ -158,9 +155,8 @@ const DashboardLayout = () => {
     if (quote.QuoteID) {
       // Fix: Check if CryptoJS is available before using it
       if (typeof CryptoJS !== 'undefined') {
-        const secret = "q3!9fKs7@pLzXr84$nmYtB!cVZdQ3";
         // const encrypted = CryptoJS.AES.encrypt(String(quote.QuoteID), secret).toString();
-          const encrypted = encodeURIComponent(encrypt(quote.QuoteID));
+        const encrypted = encodeURIComponent(encrypt(quote.QuoteID));
         const url = `https://dev.bizpoleindia.in/quotes/saved-preview/${encodeURIComponent(encrypted)}`;
         window.open(url, "_blank");
       } else {
@@ -200,50 +196,207 @@ const DashboardLayout = () => {
       handleCompanySelect,
       loadQuotesForCompany
     }}>
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* ✅ Top Navbar */}
-      <header className="bg-white px-6 py-3 flex justify-between items-center shadow-sm">
-        {/* Logo */}
-        <div className="flex items-center">
-          <img src="/Images/logo.webp" alt="Bizpole Logo" className="h-14" />
-        </div>
-
-        {/* Desktop Right Section */}
-        <div className="hidden lg:flex items-center space-x-6">
-          {/* Company Dropdown */}
-          <div className="relative">
-            <button
-              className="px-6 py-2 rounded-full font-semibold text-black bg-[#FFC42A40] hover:bg-[#FFC42A70] transition flex items-center gap-2"
-              onClick={() => setShowCompanyDropdown((prev) => !prev)}
-              type="button"
-            >
-              {selectedCompany || "Select Company"}
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {/* Company Dropdown */}
-            {showCompanyDropdown && (
-              <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg z-20 border border-gray-200">
-                {companies.map((company) => (
-                  <button
-                    key={company.CompanyID || company.BusinessName}
-                    className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${
-                      selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
-                    }`}
-                    onClick={() => handleCompanySelect(company)}
-                  >
-                    {company.BusinessName}
-                  </button>
-                ))}
-              </div>
-            )}
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        {/* ✅ Top Navbar */}
+        <header className="bg-white px-6 py-3 flex justify-between items-center shadow-sm">
+          {/* Logo */}
+          <div className="flex items-center">
+            <img src="/Images/logo.webp" alt="Bizpole Logo" className="h-14" />
           </div>
 
-          {/* Quotes Dropdown removed as per request */}
+          {/* Desktop Right Section */}
+          <div className="hidden lg:flex items-center space-x-6">
+            {/* Company Dropdown */}
+            <div className="relative">
+              <button
+                className="px-6 py-2 rounded-full font-semibold text-black bg-[#FFC42A40] hover:bg-[#FFC42A70] transition flex items-center gap-2"
+                onClick={() => setShowCompanyDropdown((prev) => !prev)}
+                type="button"
+              >
+                {selectedCompany || "Select Company"}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {/* Company Dropdown */}
+              {showCompanyDropdown && (
+                <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg z-20 border border-gray-200">
+                  {companies.map((company) => (
+                    <button
+                      key={company.CompanyID || company.BusinessName}
+                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
+                        }`}
+                      onClick={() => handleCompanySelect(company)}
+                    >
+                      {company.BusinessName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          {/* Search + Icons Container */}
-          <div className="flex items-center bg-white rounded-full shadow-md px-3 py-2 space-x-4">
+            {/* Quotes Dropdown removed as per request */}
+
+            {/* Search + Icons Container */}
+            <div className="flex items-center bg-white rounded-full shadow-md px-3 py-2 space-x-4">
+              {/* Search Bar */}
+              <div className="flex items-center bg-[#FFC42A40] rounded-full px-3 py-1.5">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-500 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18.5a7.5 7.5 0 006.15-3.85z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="bg-transparent outline-none text-sm placeholder-gray-500 w-32 focus:w-44 transition-all"
+                />
+              </div>
+
+              {/* Notifications */}
+              <button className="p-2 rounded-full hover:bg-gray-100 relative cursor-pointer">
+                <Bell size={22} className="text-gray-600" />
+                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+              </button>
+
+              {/* Profile */}
+              <NavLink to="/profile" className="flex items-center cursor-pointer">
+                <img
+                  src="/Images/user.jpg"
+                  alt="Profile"
+                  className="w-9 h-9 rounded-full shadow"
+                />
+              </NavLink>
+            </div>
+          </div>
+
+          {/* ✅ Mobile Right Section (Bell + User + Menu) */}
+          <div className="flex items-center space-x-3 lg:hidden">
+            {/* Notifications */}
+            <button className="p-2 rounded-full hover:bg-gray-100 relative cursor-pointer">
+              <Bell size={22} className="text-gray-600" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+            </button>
+
+            {/* User Profile */}
+            <div className="flex items-center cursor-pointer">
+              <img
+                src="/Images/user.jpg"
+                alt="Profile"
+                className="w-9 h-9 rounded-full shadow"
+              />
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded hover:bg-gray-100"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </header>
+
+        {/* ✅ Mobile Dropdown Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden bg-white shadow-md px-6 py-4 space-y-4">
+            {/* Company Dropdown for Mobile */}
+            <div className="relative">
+              <button
+                className="w-full px-6 py-2 rounded-full font-semibold text-black bg-[#FFC42A40] hover:bg-[#FFC42A70] transition flex items-center justify-center gap-2"
+                onClick={() => setShowCompanyDropdown((prev) => !prev)}
+                type="button"
+              >
+                {selectedCompany || "Select Company"}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              {/* Mobile Company Dropdown */}
+              {showCompanyDropdown && (
+                <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-lg z-10 border border-gray-200">
+                  {companies.map((company) => (
+                    <button
+                      key={company.CompanyID || company.BusinessName}
+                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
+                        }`}
+                      onClick={() => {
+                        handleCompanySelect(company);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      {company.BusinessName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Quotes Section for Mobile */}
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-semibold text-gray-800">Quotes ({quotes.length})</h3>
+                <button
+                  onClick={handleGenerateQuote}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
+                >
+                  <Plus size={14} />
+                  Generate
+                </button>
+              </div>
+              {quotes.length === 0 ? (
+                <div className="text-center py-4 text-gray-500 border rounded-lg">
+                  <FileText size={32} className="mx-auto mb-2 text-gray-400" />
+                  <p>No quotes found</p>
+                  <button
+                    onClick={handleGenerateQuote}
+                    className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600"
+                  >
+                    Generate Quote
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {quotes.map((quote) => (
+                    <div
+                      key={quote.QuoteID}
+                      className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleViewQuote(quote)}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-800">{quote.PackageName || "Untitled Quote"}</p>
+                          <p className="text-sm text-gray-600">
+                            Status: <span className={`font-semibold ${quote.QuoteStatus === 'Approved' ? 'text-green-600' :
+                              quote.QuoteStatus === 'Draft' ? 'text-yellow-600' :
+                                'text-gray-600'
+                              }`}>
+                              {quote.QuoteStatus}
+                            </span>
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-800">
+                            ₹{quote.TotalAmount || quote.Total || "0"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(quote.CreatedDate || quote.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Search Bar */}
-            <div className="flex items-center bg-[#FFC42A40] rounded-full px-3 py-1.5">
+            <div className="flex items-center bg-[#FFC42A40] rounded-full px-3 py-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5 text-gray-500 mr-2"
@@ -261,246 +414,86 @@ const DashboardLayout = () => {
               <input
                 type="text"
                 placeholder="Search"
-                className="bg-transparent outline-none text-sm placeholder-gray-500 w-32 focus:w-44 transition-all"
+                className="bg-transparent outline-none text-sm placeholder-gray-500 w-full"
               />
             </div>
-
-            {/* Notifications */}
-            <button className="p-2 rounded-full hover:bg-gray-100 relative cursor-pointer">
-              <Bell size={22} className="text-gray-600" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* Profile */}
-            <NavLink to="/profile" className="flex items-center cursor-pointer">
-              <img
-                src="/Images/user.jpg"
-                alt="Profile"
-                className="w-9 h-9 rounded-full shadow"
-              />
-            </NavLink>
           </div>
-        </div>
+        )}
 
-        {/* ✅ Mobile Right Section (Bell + User + Menu) */}
-        <div className="flex items-center space-x-3 lg:hidden">
-          {/* Notifications */}
-          <button className="p-2 rounded-full hover:bg-gray-100 relative cursor-pointer">
-            <Bell size={22} className="text-gray-600" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          </button>
-
-          {/* User Profile */}
-          <div className="flex items-center cursor-pointer">
-            <img
-              src="/Images/user.jpg"
-              alt="Profile"
-              className="w-9 h-9 rounded-full shadow"
-            />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 rounded hover:bg-gray-100"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </header>
-
-      {/* ✅ Mobile Dropdown Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white shadow-md px-6 py-4 space-y-4">
-          {/* Company Dropdown for Mobile */}
-          <div className="relative">
-            <button
-              className="w-full px-6 py-2 rounded-full font-semibold text-black bg-[#FFC42A40] hover:bg-[#FFC42A70] transition flex items-center justify-center gap-2"
-              onClick={() => setShowCompanyDropdown((prev) => !prev)}
-              type="button"
-            >
-              {selectedCompany || "Select Company"}
-              <ChevronDown className="w-4 h-4" />
-            </button>
-            {/* Mobile Company Dropdown */}
-            {showCompanyDropdown && (
-              <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-lg z-10 border border-gray-200">
-                {companies.map((company) => (
-                  <button
-                    key={company.CompanyID || company.BusinessName}
-                    className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${
-                      selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
-                    }`}
-                    onClick={() => {
-                      handleCompanySelect(company);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    {company.BusinessName}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Quotes Section for Mobile */}
-          <div className="border-t pt-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-gray-800">Quotes ({quotes.length})</h3>
-              <button
-                onClick={handleGenerateQuote}
-                className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
-              >
-                <Plus size={14} />
-                Generate
-              </button>
-            </div>
-            {quotes.length === 0 ? (
-              <div className="text-center py-4 text-gray-500 border rounded-lg">
-                <FileText size={32} className="mx-auto mb-2 text-gray-400" />
-                <p>No quotes found</p>
-                <button
-                  onClick={handleGenerateQuote}
-                  className="mt-2 px-4 py-2 bg-yellow-500 text-white rounded-lg text-sm hover:bg-yellow-600"
-                >
-                  Generate Quote
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {quotes.map((quote) => (
-                  <div
-                    key={quote.QuoteID}
-                    className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                    onClick={() => handleViewQuote(quote)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-medium text-gray-800">{quote.PackageName || "Untitled Quote"}</p>
-                        <p className="text-sm text-gray-600">
-                          Status: <span className={`font-semibold ${
-                            quote.QuoteStatus === 'Approved' ? 'text-green-600' : 
-                            quote.QuoteStatus === 'Draft' ? 'text-yellow-600' : 
-                            'text-gray-600'
-                          }`}>
-                            {quote.QuoteStatus}
-                          </span>
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-semibold text-gray-800">
-                          ₹{quote.TotalAmount || quote.Total || "0"}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(quote.CreatedDate || quote.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Search Bar */}
-          <div className="flex items-center bg-[#FFC42A40] rounded-full px-3 py-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 text-gray-500 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18.5a7.5 7.5 0 006.15-3.85z"
-              />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search"
-              className="bg-transparent outline-none text-sm placeholder-gray-500 w-full"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ✅ Main Section */}
-      <div className="flex flex-1 p-2">
-        {/* Sidebar */}
-        <div
-          className={`bg-[#221e1e] text-white transition-all duration-300
+        {/* ✅ Main Section */}
+        <div className="flex flex-1 p-2">
+          {/* Sidebar */}
+          <div
+            className={`bg-[#221e1e] text-white transition-all duration-300
             ${isSidebarOpen ? "w-60" : "w-16"}
             flex flex-col justify-between rounded-xl shadow-md`}
-        >
-          {/* Sidebar Top */}
-          <div>
-            {/* Toggle + Title */}
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-              {isSidebarOpen && (
-                <span className="font-bold text-lg tracking-wide">Bizpole</span>
-              )}
-              <button
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                className="p-2 rounded hover:bg-gray-800"
-              >
-                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
+          >
+            {/* Sidebar Top */}
+            <div>
+              {/* Toggle + Title */}
+              <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                {isSidebarOpen && (
+                  <span className="font-bold text-lg tracking-wide">Bizpole</span>
+                )}
+                <button
+                  onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                  className="p-2 rounded hover:bg-gray-800"
+                >
+                  {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                </button>
+              </div>
+
+              {/* Menu Items */}
+              <nav className="mt-4 px-2">
+                <ul className="space-y-2">
+                  {menuItems.map((item, index) => (
+                    <li key={index}>
+                      <NavLink
+                        to={item.path}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 py-3 px-3 rounded-lg transition
+                        ${isActive
+                            ? "bg-gray-700 text-white"
+                            : "text-gray-300 hover:bg-gray-700 hover:text-white"}`
+                        }
+                      >
+                        <item.icon size={isSidebarOpen ? 24 : 20} />
+                        {isSidebarOpen && (
+                          <span className="text-sm font-medium">{item.name}</span>
+                        )}
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
             </div>
 
-            {/* Menu Items */}
-            <nav className="mt-4 px-2">
-              <ul className="space-y-2">
-                {menuItems.map((item, index) => (
-                  <li key={index}>
-                    <NavLink
-                      to={item.path}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 py-3 px-3 rounded-lg transition
-                        ${isActive
-                          ? "bg-gray-700 text-white"
-                          : "text-gray-300 hover:bg-gray-700 hover:text-white"}`
-                      }
-                    >
-                      <item.icon size={isSidebarOpen ? 24 : 20} />
-                      {isSidebarOpen && (
-                        <span className="text-sm font-medium">{item.name}</span>
-                      )}
-                    </NavLink>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+            {/* Sidebar Bottom */}
+            <div className="p-4 border-t border-gray-700 flex flex-col space-y-2">
+              <NavLink
+                to="/help"
+                className="flex items-center gap-3 py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
+              >
+                <HelpCircle size={isSidebarOpen ? 24 : 20} />
+                {isSidebarOpen && <span className="text-sm font-medium">Help</span>}
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 py-2 px-3 rounded-lg text-red-500 hover:bg-gray-700 hover:text-red-400"
+              >
+                <LogOut size={isSidebarOpen ? 24 : 20} />
+                {isSidebarOpen && <span className="text-sm font-medium">Logout</span>}
+              </button>
+            </div>
           </div>
 
-          {/* Sidebar Bottom */}
-          <div className="p-4 border-t border-gray-700 flex flex-col space-y-2">
-            <NavLink
-              to="/help"
-              className="flex items-center gap-3 py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
-            >
-              <HelpCircle size={isSidebarOpen ? 24 : 20} />
-              {isSidebarOpen && <span className="text-sm font-medium">Help</span>}
-            </NavLink>
-             <button
-      onClick={handleLogout}
-      className="flex items-center gap-3 py-2 px-3 rounded-lg text-red-500 hover:bg-gray-700 hover:text-red-400"
-    >
-      <LogOut size={isSidebarOpen ? 24 : 20} />
-      {isSidebarOpen && <span className="text-sm font-medium">Logout</span>}
-    </button>
-          </div>
+          {/* Page Content */}
+          <main className="flex-1 bg-gray-50 overflow-auto rounded-xl">
+            <Outlet /> {/* ✅ Nested Dashboard Routes */}
+          </main>
         </div>
-
-        {/* Page Content */}
-        <main className="flex-1 bg-gray-50 overflow-auto rounded-xl">
-          <Outlet /> {/* ✅ Nested Dashboard Routes */}
-        </main>
       </div>
-  </div>
-  </DashboardContext.Provider>
+    </DashboardContext.Provider>
   );
 };
 
