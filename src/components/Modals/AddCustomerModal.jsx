@@ -150,7 +150,10 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
     const [activeTab, setActiveTab] = useState("customer");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCompanySearch, setShowCompanySearch] = useState(false);
+    const [errors, setErrors] = useState({});
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const mobileRegex = /^(?:\+91|91)?[6-9]\d{9}$/;
 
     const [customerData, setCustomerData] = useState({
         firstName: "",
@@ -279,6 +282,14 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
     const handleCustomerChange = (e) => {
         const { name, value, type, checked } = e.target;
         setCustomerData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+        // Clear error when user types
+        if (errors[name]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[name];
+                return newErrors;
+            });
+        }
     };
 
     const handleCompanyChange = (id, field, value) => {
@@ -407,6 +418,37 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
 
 
 
+    const handleNextStep = () => {
+        const newErrors = {};
+
+        if (!customerData.firstName?.trim()) newErrors.firstName = "First name is required";
+        if (!customerData.lastName?.trim()) newErrors.lastName = "Last name is required";
+
+        if (!customerData.mobile?.trim()) {
+            newErrors.mobile = "Mobile number is required";
+        } else if (!mobileRegex.test(customerData.mobile)) {
+            newErrors.mobile = "Enter valid mobile number";
+        }
+
+        if (!customerData.email?.trim()) {
+            newErrors.email = "Email address is required";
+        } else if (!emailRegex.test(customerData.email)) {
+            newErrors.email = "Enter valid email address";
+        }
+
+        if (!customerData.state) newErrors.state = "Please select state";
+        if (!customerData.district) newErrors.district = "Please select district";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill all required fields correctly");
+            return;
+        }
+
+        setErrors({});
+        setActiveTab("company");
+    };
+
     const handleClearCompanyForm = () => {
         setCompanies(prev => {
             const updated = [...prev];
@@ -437,8 +479,29 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
     };
 
     const handleSubmit = async () => {
-        if (!customerData.firstName || !customerData.mobile) {
-            toast.error("Please fill required customer fields");
+        const newErrors = {};
+
+        if (!customerData.firstName?.trim()) newErrors.firstName = "First name is required";
+        if (!customerData.lastName?.trim()) newErrors.lastName = "Last name is required";
+
+        if (!customerData.mobile?.trim()) {
+            newErrors.mobile = "Mobile number is required";
+        } else if (!mobileRegex.test(customerData.mobile)) {
+            newErrors.mobile = "Enter valid mobile number";
+        }
+
+        if (!customerData.email?.trim()) {
+            newErrors.email = "Email address is required";
+        } else if (!emailRegex.test(customerData.email)) {
+            newErrors.email = "Enter valid email address";
+        }
+
+        if (!customerData.state) newErrors.state = "Please select state";
+        if (!customerData.district) newErrors.district = "Please select district";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            toast.error("Please fill all required fields correctly");
             setActiveTab("customer");
             return;
         }
@@ -514,7 +577,13 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                         {activeTab === "customer" && <motion.div layoutId="tabLine" className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-full" />}
                     </button>
                     <button
-                        onClick={() => setActiveTab("company")}
+                        onClick={() => {
+                            if (activeTab === "customer") {
+                                handleNextStep();
+                            } else {
+                                setActiveTab("company");
+                            }
+                        }}
                         className={`flex items-center gap-2 pb-2 px-1 text-sm font-bold uppercase tracking-wider transition-all relative ${activeTab === "company" ? "text-indigo-600" : "text-gray-400 hover:text-gray-600"
                             }`}
                     >
@@ -540,60 +609,68 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-600">
-                                            First Name
+                                            First Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             name="firstName"
                                             value={customerData.firstName}
                                             onChange={handleCustomerChange}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.firstName ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                                }`}
                                             placeholder="Enter first name"
                                         />
+                                        {errors.firstName && <p className="text-xs text-red-500 mt-1 font-medium">{errors.firstName}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-600">
-                                            Last Name
+                                            Last Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
                                             type="text"
                                             name="lastName"
                                             value={customerData.lastName}
                                             onChange={handleCustomerChange}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.lastName ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                                }`}
                                             placeholder="Enter last name"
                                         />
+                                        {errors.lastName && <p className="text-xs text-red-500 mt-1 font-medium">{errors.lastName}</p>}
                                     </div>
                                 </div>
 
                                 {/* Mobile */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-600">
-                                        Mobile
+                                        Mobile <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         name="mobile"
                                         value={customerData.mobile}
                                         onChange={handleCustomerChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                        className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.mobile ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                            }`}
                                         placeholder="Enter mobile number"
                                     />
+                                    {errors.mobile && <p className="text-xs text-red-500 mt-1 font-medium">{errors.mobile}</p>}
                                 </div>
 
                                 {/* Email */}
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-600">
-                                        Email
+                                        Email <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="email"
                                         name="email"
                                         value={customerData.email}
                                         onChange={handleCustomerChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                        className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.email ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                            }`}
                                         placeholder="Enter email address"
                                     />
+                                    {errors.email && <p className="text-xs text-red-500 mt-1 font-medium">{errors.email}</p>}
                                 </div>
 
                                 {/* Country + Pincode */}
@@ -630,13 +707,14 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-600">
-                                            State
+                                            State <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             name="state"
                                             value={customerData.state}
                                             onChange={handleCustomerChange}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.state ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                                }`}
                                         >
                                             <option value="">Search or select state</option>
                                             {locationData.states.map(s => (
@@ -645,17 +723,19 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                                 </option>
                                             ))}
                                         </select>
+                                        {errors.state && <p className="text-xs text-red-500 mt-1 font-medium">{errors.state}</p>}
                                     </div>
 
                                     <div className="space-y-2">
                                         <label className="text-sm font-medium text-gray-600">
-                                            District
+                                            District <span className="text-red-500">*</span>
                                         </label>
                                         <select
                                             name="district"
                                             value={customerData.district}
                                             onChange={handleCustomerChange}
-                                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm"
+                                            className={`w-full px-4 py-3 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all ${errors.district ? "border-red-500 focus:ring-red-500/20" : "border-gray-200"
+                                                }`}
                                         >
                                             <option value="">Search or select district</option>
                                             {customerData.state &&
@@ -667,6 +747,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                                                         </option>
                                                     ))}
                                         </select>
+                                        {errors.district && <p className="text-xs text-red-500 mt-1 font-medium">{errors.district}</p>}
                                     </div>
                                 </div>
 
@@ -975,7 +1056,7 @@ const AddCustomerModal = ({ isOpen, onClose, onSuccess, initialData }) => {
                         </button>
                         {activeTab === "customer" ? (
                             <button
-                                onClick={() => setActiveTab("company")}
+                                onClick={handleNextStep}
                                 className="px-10 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 hover:shadow-indigo-300 transition-all transform active:scale-95"
                             >
                                 Next Step

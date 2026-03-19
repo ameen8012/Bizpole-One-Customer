@@ -160,12 +160,30 @@ export default {
     requestQuote,
     updateDeal,
     deleteDeal,
-    checkCompanyExistence: async (name) => {
+    checkCompanyExistence: async (name, excludeId = null) => {
         try {
-            const response = await axiosInstance.post("/company/check-existence", { name });
+            const response = await axiosInstance.post("/company/check-existence", { name, excludeId });
             return response.data;
         } catch (error) {
             console.error("Error checking company existence:", error);
+            throw error;
+        }
+    },
+    checkCompanyEmailExistence: async (email, excludeId = null) => {
+        try {
+            const response = await axiosInstance.post("/company/check-email-existence", { email, excludeId });
+            return response.data;
+        } catch (error) {
+            console.error("Error checking company email existence:", error);
+            throw error;
+        }
+    },
+    checkCompanyMobileExistence: async (mobile, excludeId = null) => {
+        try {
+            const response = await axiosInstance.post("/company/check-mobile-existence", { mobile, excludeId });
+            return response.data;
+        } catch (error) {
+            console.error("Error checking company mobile existence:", error);
             throw error;
         }
     }
