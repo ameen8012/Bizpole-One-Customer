@@ -17,7 +17,7 @@ export const listOrders = async (filters) => {
 };
 export const initPayment = async (payload) => {
   try {
-    const response = await axiosInstance.post("https://api.bizpoleindia.in/initiate", payload);
+    const response = await axiosInstance.post("/initiate", payload);
     return response.data;
   } catch (error) {
     console.error("Error initPayment:", error);

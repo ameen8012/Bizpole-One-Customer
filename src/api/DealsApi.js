@@ -147,6 +147,35 @@ export const getCustomerDetails = async (customerId) => {
     }
 };
 
+/**
+ * Create a Deal for an EXISTING company/customer (no ₹0 floor, unlike convert-to-deal).
+ * Used by the customer-portal call-back request flow (existing client + new service).
+ * @param {Object} payload - { name, state, mobile, email, franchiseId, employeeId, sourceOfSale, dealType, services, CompanyID, CustomerID }
+ */
+export const insertDeal = async (payload) => {
+    try {
+        const response = await axiosInstance.post("/insert", payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error inserting deal:", error);
+        throw error;
+    }
+};
+
+/**
+ * Schedule a follow-up on a Deal.
+ * @param {Object} payload - { dealId, followUpDate, remark }
+ */
+export const createDealFollowUp = async ({ dealId, followUpDate, remark }) => {
+    try {
+        const response = await axiosInstance.post("/deal-followup/create", { dealId, followUpDate, remark });
+        return response.data;
+    } catch (error) {
+        console.error("Error creating deal follow-up:", error);
+        throw error;
+    }
+};
+
 export default {
     convertToDeal,
     listDeals,
@@ -160,6 +189,8 @@ export default {
     requestQuote,
     updateDeal,
     deleteDeal,
+    insertDeal,
+    createDealFollowUp,
     checkCompanyExistence: async (name, excludeId = null) => {
         try {
             const response = await axiosInstance.post("/company/check-existence", { name, excludeId });

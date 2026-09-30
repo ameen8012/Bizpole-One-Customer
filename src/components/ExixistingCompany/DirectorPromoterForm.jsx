@@ -48,24 +48,26 @@ function isDirectorFieldMandatory(fieldName, businessType) {
   return config.mandatory.includes(businessType);
 }
 
-const DirectorPromoterForm = ({ onNext, onBack }) => {
+const DirectorPromoterForm = ({ onNext, onBack, initialData }) => {
   const [companyInfo, setCompanyInfo] = useState(null);
   const [businessType, setBusinessType] = useState("");
-  const [count, setCount] = useState(1);
-  const [directors, setDirectors] = useState([
-    { 
-      fullName: "", 
-      designation: "", 
-      din: "", 
-      mobile: "", 
-      email: "", 
-      pan: "", 
-      shareholding: "",
-      shareCapital: "",
-      profitShare: "",
-      isPrimary: true
-    },
-  ]);
+  const [count, setCount] = useState(initialData?.count || 1);
+  const [directors, setDirectors] = useState(
+    initialData?.directors || [
+      {
+        fullName: "",
+        designation: "",
+        din: "",
+        mobile: "",
+        email: "",
+        pan: "",
+        shareholding: "",
+        shareCapital: "",
+        profitShare: "",
+        isPrimary: true
+      },
+    ]
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState({});
@@ -80,21 +82,22 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
           setCompanyInfo(parsed);
           setBusinessType(parsed.ConstitutionCategory || "");
           
-          // Set initial director count based on business type
+          // Set initial director count based on business type - only when there's
+          // no previously-typed draft to restore (e.g. first visit to this step)
           const type = parsed.ConstitutionCategory;
-          if (type === BUSINESS_TYPES.OPC || type === BUSINESS_TYPES.PROPRIETORSHIP) {
+          if (!initialData && (type === BUSINESS_TYPES.OPC || type === BUSINESS_TYPES.PROPRIETORSHIP)) {
             setCount(1);
-            setDirectors([{ 
-              fullName: "", 
-              designation: type === BUSINESS_TYPES.OPC ? "Director" : "Proprietor", 
-              din: "", 
-              mobile: "", 
-              email: "", 
-              pan: "", 
+            setDirectors([{
+              fullName: "",
+              designation: type === BUSINESS_TYPES.OPC ? "Director" : "Proprietor",
+              din: "",
+              mobile: "",
+              email: "",
+              pan: "",
               shareholding: "",
               shareCapital: "",
               profitShare: "",
-              isPrimary: true 
+              isPrimary: true
             }]);
           }
         }
@@ -345,7 +348,8 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
 
       // API call
       await upsertCompany(payload);
-      if (onNext) onNext();
+      // Pass this step's data along so navigating back here later restores it
+      if (onNext) onNext({ directors, count });
     } catch (err) {
       console.error("Error while saving:", err);
       setError(err.response?.data?.message || "Failed to save director/promoter details. Please try again.");
@@ -402,7 +406,7 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
               <h1 className="text-2xl font-bold text-gray-800">Director/Promoter Details</h1>
               <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 w-20 bg-yellow-400 rounded-full"></div>
-                <span className="text-xs text-gray-500">Step 2 of 3</span>
+                <span className="text-xs text-gray-500">Step 2 of 4</span>
               </div>
               {businessType && (
                 <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full mt-2 inline-block">
@@ -420,7 +424,7 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
           <div className="lg:hidden mb-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-20 bg-yellow-400 rounded-full"></div>
-              <span className="text-xs text-gray-500">Step 2 of 3</span>
+              <span className="text-xs text-gray-500">Step 2 of 4</span>
             </div>
             {businessType && (
               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full mt-2 inline-block">
@@ -783,12 +787,12 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
 <div className="hidden lg:block w-80 bg-gradient-to-b from-yellow-400 to-yellow-500 text-black p-6 rounded-tl-3xl rounded-bl-3xl">
   <div className="sticky top-30">
     <h2 className="font-bold text-lg mb-1 text-center">Quick Setup</h2>
-    <p className="text-black text-xs mb-8 text-center">Complete these 3 steps</p>
-    
+    <p className="text-black text-xs mb-8 text-center">Complete these 4 steps</p>
+
     <div className="relative">
       {/* Progress Line */}
       <div className="absolute left-3 top-2 bottom-0 w-0.5 bg-yellow-300"></div>
-      
+
       {/* Step 1 */}
       <div className="relative flex items-center gap-3 mb-8">
         <div className="w-6 h-6 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0"><svg
@@ -806,7 +810,7 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
           <p className="text-white text-xs">Basic company details</p>
         </div>
       </div>
-      
+
       {/* Step 2 */}
       <div className="relative flex items-center gap-3 mb-8">
         <div className="w-6 h-6 bg-white text-black rounded-full flex items-center justify-center font-bold text-xs z-10 flex-shrink-0">2</div>
@@ -817,25 +821,34 @@ const DirectorPromoterForm = ({ onNext, onBack }) => {
 
         </div>
       </div>
-      
+
       {/* Step 3 */}
-      <div className="relative flex items-center gap-3">
+      <div className="relative flex items-center gap-3 mb-8">
         <div className="w-6 h-6 bg-white/20 text-black rounded-full flex items-center justify-center font-bold text-xs z-10 flex-shrink-0">3</div>
+        <div>
+          <h3 className="font-semibold text-sm text-black">Registration Status</h3>
+          <p className="text-black text-xs">Company & tax registrations</p>
+        </div>
+      </div>
+
+      {/* Step 4 */}
+      <div className="relative flex items-center gap-3">
+        <div className="w-6 h-6 bg-white/20 text-black rounded-full flex items-center justify-center font-bold text-xs z-10 flex-shrink-0">4</div>
         <div>
           <h3 className="font-semibold text-sm text-black">Compliance</h3>
           <p className="text-black text-xs">Final verification & documents</p>
         </div>
       </div>
     </div>
-    
+
     {/* Progress Summary */}
     <div className="mt-10 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
       <div className="flex justify-between mb-1 text-xs text-black mb-3">
         <span>Overall Progress</span>
-        <span className="font-bold">66%</span>
+        <span className="font-bold">50%</span>
       </div>
       <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-        <div className="w-2/3 h-full bg-white rounded-full"></div>
+        <div className="w-1/2 h-full bg-white rounded-full"></div>
       </div>
     </div>
   </div>

@@ -9,6 +9,8 @@ import {
   ChevronDown,
   Box,
   Wrench,
+  Receipt,
+  LifeBuoy,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -174,22 +176,37 @@ const BizpoleOneDashboardLayout = () => {
                 </NavLink>
               </li>
 
-              {/* Customer supports */}
-              {/* <li>
+              {/* Billing and Invoice */}
+              <li>
                 <NavLink
-                  to="/dashboard/bizpoleone/support"
+                  to="/dashboard/bizpoleone/billing"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${
-                      isActive
-                        ? "bg-[#FFC42A] text-white shadow-inner"
-                        : "text-gray-600 hover:bg-gray-50"
+                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${isActive
+                      ? "bg-[#FFC42A] text-white shadow-inner"
+                      : "text-gray-600 hover:bg-gray-50"
                     }`
                   }
                 >
-                  <Settings size={20} />
+                  <Receipt size={20} />
+                  {!isCollapsed && <span>Billing and Invoice</span>}
+                </NavLink>
+              </li>
+
+              {/* Customer supports */}
+              <li>
+                <NavLink
+                  to="/dashboard/bizpoleone/support"
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-3 rounded-lg font-medium transition-all ${isActive
+                      ? "bg-[#FFC42A] text-white shadow-inner"
+                      : "text-gray-600 hover:bg-gray-50"
+                    }`
+                  }
+                >
+                  <LifeBuoy size={20} />
                   {!isCollapsed && <span>Customer supports</span>}
                 </NavLink>
-              </li> */}
+              </li>
             </ul>
           </nav>
         </div>
@@ -203,7 +220,7 @@ const BizpoleOneDashboardLayout = () => {
             className="p-4 space-y-4"
           >
             {/* Upgrade Card */}
-            <div className="bg-[#FFC42A] rounded-2xl text-center p-4 text-white font-medium shadow-md">
+            {/* <div className="bg-[#FFC42A] rounded-2xl text-center p-4 text-white font-medium shadow-md">
               <div className="mb-3 flex justify-center">
                 <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
                   <span className="text-[#FFC42A] font-bold text-lg">⬆</span>
@@ -215,7 +232,7 @@ const BizpoleOneDashboardLayout = () => {
                 <br />
                 Connect with Venus World!
               </p>
-            </div>
+            </div> */}
 
             {/* Custom Sidebar Image */}
             <img

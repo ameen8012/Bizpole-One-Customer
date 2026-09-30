@@ -1,6 +1,7 @@
 import React, { useState, useEffect, createContext } from "react";
 import ConfirmMsg from "../components/ConfirmMsg";
 import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import axiosInstance from "../api/axiosInstance";
 import { Outlet, NavLink } from "react-router-dom";
 import {
   BookOpen,
@@ -15,6 +16,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { flowRoute, inProgressApplications, clearStorageKeepingApplications } from "../utils/applicationPrefill";
 
 
 // Context to provide selected company and quotes
@@ -69,6 +71,7 @@ const DashboardLayout = () => {
         }
 
         if (user && user.Companies && Array.isArray(user.Companies)) {
+     
           setCompanies(user.Companies);
 
           // Set default selected company to saved or first one
@@ -80,13 +83,16 @@ const DashboardLayout = () => {
           }
 
           if (targetCompany) {
+                 
             setSelectedCompany(targetCompany.BusinessName);
             setSelectedCompanyId(targetCompany.CompanyID);
+            
             // Load quotes for the selected company
             loadQuotesForCompany(targetCompany);
             setSecureItem("selectedCompany", JSON.stringify({
               CompanyID: targetCompany.CompanyID,
-              CompanyName: targetCompany.BusinessName
+              CompanyName: targetCompany.BusinessName,
+              State: targetCompany.State || ""
             }));
           }
         }
@@ -105,7 +111,59 @@ const DashboardLayout = () => {
     } else {
       setQuotes([]);
     }
+    // The cached Quotes above are only as fresh as the last sign-in — anything
+    // created since (e.g. the apply flow's quote) is missing. Refresh from the
+    // server and cache the result. Customer sessions only (the endpoint takes a
+    // website token); on failure the cached list stays.
+    const companyId = company?.CompanyID;
+    if (!companyId || !localStorage.getItem("token") || localStorage.getItem("partnerToken")) return;
+    axiosInstance
+      .get(`/website/company-quotes/${companyId}`)
+      .then((res) => {
+        const serverQuotes = res.data?.data;
+        if (!res.data?.success || !Array.isArray(serverQuotes)) return;
+        // Server rows win; keep any cached quote the server didn't return
+        // (it only scopes by this customer + company).
+        const cached = Array.isArray(company.Quotes) ? company.Quotes : [];
+        const seen = new Set(serverQuotes.map((q) => String(q.QuoteID)));
+        const fresh = [...serverQuotes, ...cached.filter((q) => !seen.has(String(q.QuoteID)))];
+        setQuotes(fresh);
+        try {
+          const raw = getSecureItem("user");
+          const user = typeof raw === "string" ? JSON.parse(raw) : raw;
+          if (user?.Companies) {
+            user.Companies = user.Companies.map((c) =>
+              String(c.CompanyID) === String(companyId) ? { ...c, Quotes: fresh } : c
+            );
+            setSecureItem("user", JSON.stringify(user));
+          }
+        } catch {
+          // cache refresh is best-effort
+        }
+      })
+      .catch(() => {});
   };
+
+  // Re-read quotes from localStorage whenever a quote is created/updated
+  // elsewhere (upsertQuote patches localStorage then fires this event) —
+  // the mount-only effect above won't otherwise pick up the change since
+  // this layout stays mounted across client-side nav within /dashboard/*.
+  useEffect(() => {
+    const handleQuotesUpdated = () => {
+      try {
+        const rawUser = getSecureItem("user");
+        const user = typeof rawUser === "string" ? JSON.parse(rawUser) : rawUser;
+        const company = user?.Companies?.find(
+          (c) => String(c.CompanyID) === String(selectedCompanyId)
+        );
+        if (company) loadQuotesForCompany(company);
+      } catch (e) {
+        console.log("Failed to refresh quotes after update", e);
+      }
+    };
+    window.addEventListener("quotes-updated", handleQuotesUpdated);
+    return () => window.removeEventListener("quotes-updated", handleQuotesUpdated);
+  }, [selectedCompanyId]);
 
 
 
@@ -113,7 +171,7 @@ const DashboardLayout = () => {
 
   const [showConfirm, setShowConfirm] = useState(false);
   const handleLogout = () => {
-    localStorage.clear();
+    clearStorageKeepingApplications();
     navigate("/");
   };
   // Handle company selection
@@ -123,8 +181,10 @@ const DashboardLayout = () => {
     loadQuotesForCompany(company);
     setSecureItem("selectedCompany", JSON.stringify({
       CompanyID: company.CompanyID,
-      CompanyName: company.BusinessName
+      CompanyName: company.BusinessName,
+      State: company.State || ""
     }));
+    window.dispatchEvent(new Event("company-switched"));
     setShowCompanyDropdown(false);
   };
 
@@ -151,9 +211,8 @@ const DashboardLayout = () => {
     if (quote.QuoteID) {
       // Fix: Check if CryptoJS is available before using it
       if (typeof CryptoJS !== 'undefined') {
-        // const encrypted = CryptoJS.AES.encrypt(String(quote.QuoteID), secret).toString();
-        const encrypted = encodeURIComponent(encrypt(quote.QuoteID));
-        const url = `https://dev.bizpoleindia.in/quotes/saved-preview/${encodeURIComponent(encrypted)}`;
+        const encrypted = encrypt(quote.QuoteID);
+        const url = `${import.meta.env.VITE_CLIENT_BASE_URL}/quotes/saved-preview/${encodeURIComponent(encrypted)}`;
         window.open(url, "_blank");
       } else {
         console.error("CryptoJS is not available");
@@ -182,16 +241,49 @@ const DashboardLayout = () => {
     { name: "Bizpole One", path: "/dashboard/bizpoleone", icon: Layers },
     { name: "Bizpole Books", path: "/dashboard/books", icon: BookOpen },
   ];
+  // Bottom of the company switcher: pick up an application already in progress
+  // (its saved answers reopen as entered — see applicationPrefill).
+  const inProgress = showCompanyDropdown ? inProgressApplications() : [];
+  const openApplication = (path, state) => {
+    setShowCompanyDropdown(false);
+    setIsMobileMenuOpen(false);
+    navigate(path, { state });
+  };
+  const applicationActions = inProgress.length > 0 && (
+    <div className="border-t border-gray-200 py-1">
+      {inProgress.map((app) => {
+        const { path, state } = flowRoute(app.flowId);
+        return (
+          <button
+            key={app.flowId}
+            type="button"
+            className="w-full text-left px-5 py-2.5 hover:bg-yellow-100 text-sm transition"
+            onClick={() => openApplication(path, { ...state, companyId: selectedCompanyId })}
+          >
+            <span className="font-semibold">Continue:</span> {app.name}
+            <span className="block text-xs text-gray-500">{app.kind} · step {app.step}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 
+const uniqueCompanies = Array.from(
+  new Map(
+    companies.map((company) => [company.BusinessName.trim(), company]),
+  ).values(),
+);
   return (
-    <DashboardContext.Provider value={{
-      selectedCompany,
-      selectedCompanyId,
-      companies,
-      quotes,
-      handleCompanySelect,
-      loadQuotesForCompany
-    }}>
+    <DashboardContext.Provider
+      value={{
+        selectedCompany,
+        selectedCompanyId,
+        companies,
+        quotes,
+        handleCompanySelect,
+        loadQuotesForCompany,
+      }}
+    >
       <div className="min-h-screen flex flex-col bg-gray-50">
         {/* ✅ Top Navbar */}
         <header className="bg-white px-6 py-3 flex justify-between items-center shadow-sm">
@@ -215,16 +307,20 @@ const DashboardLayout = () => {
               {/* Company Dropdown */}
               {showCompanyDropdown && (
                 <div className="absolute left-0 mt-2 w-56 bg-white rounded-xl shadow-lg z-20 border border-gray-200">
-                  {companies.map((company) => (
+                  {uniqueCompanies.map((company) => (   
                     <button
-                      key={company.CompanyID || company.BusinessName}
-                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
-                        }`}
+                      key={company.CompanyID}
+                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${
+                        selectedCompany === company.BusinessName
+                          ? "bg-yellow-50 font-bold"
+                          : ""
+                      }`}
                       onClick={() => handleCompanySelect(company)}
                     >
                       {company.BusinessName}
                     </button>
                   ))}
+                  {applicationActions}
                 </div>
               )}
             </div>
@@ -263,7 +359,10 @@ const DashboardLayout = () => {
               </button>
 
               {/* Profile */}
-              <NavLink to="/profile" className="flex items-center cursor-pointer">
+              <NavLink
+                to="/profile"
+                className="flex items-center cursor-pointer"
+              >
                 <img
                   src="/Images/user.jpg"
                   alt="Profile"
@@ -319,8 +418,11 @@ const DashboardLayout = () => {
                   {companies.map((company) => (
                     <button
                       key={company.CompanyID || company.BusinessName}
-                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${selectedCompany === company.BusinessName ? "bg-yellow-50 font-bold" : ""
-                        }`}
+                      className={`w-full text-left px-5 py-3 hover:bg-yellow-100 rounded-xl transition ${
+                        selectedCompany === company.BusinessName
+                          ? "bg-yellow-50 font-bold"
+                          : ""
+                      }`}
                       onClick={() => {
                         handleCompanySelect(company);
                         setIsMobileMenuOpen(false);
@@ -329,6 +431,7 @@ const DashboardLayout = () => {
                       {company.BusinessName}
                     </button>
                   ))}
+                  {applicationActions}
                 </div>
               )}
             </div>
@@ -336,7 +439,9 @@ const DashboardLayout = () => {
             {/* Quotes Section for Mobile */}
             <div className="border-t pt-4">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-semibold text-gray-800">Quotes ({quotes.length})</h3>
+                <h3 className="font-semibold text-gray-800">
+                  Quotes ({quotes.length})
+                </h3>
                 <button
                   onClick={handleGenerateQuote}
                   className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
@@ -366,12 +471,20 @@ const DashboardLayout = () => {
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="font-medium text-gray-800">{quote.PackageName || "Untitled Quote"}</p>
+                          <p className="font-medium text-gray-800">
+                            {quote.PackageName || "Untitled Quote"}
+                          </p>
                           <p className="text-sm text-gray-600">
-                            Status: <span className={`font-semibold ${quote.QuoteStatus === 'Approved' ? 'text-green-600' :
-                              quote.QuoteStatus === 'Draft' ? 'text-yellow-600' :
-                                'text-gray-600'
-                              }`}>
+                            Status:{" "}
+                            <span
+                              className={`font-semibold ${
+                                quote.QuoteStatus === "Approved"
+                                  ? "text-green-600"
+                                  : quote.QuoteStatus === "Draft"
+                                    ? "text-yellow-600"
+                                    : "text-gray-600"
+                              }`}
+                            >
                               {quote.QuoteStatus}
                             </span>
                           </p>
@@ -381,7 +494,9 @@ const DashboardLayout = () => {
                             ₹{quote.TotalAmount || quote.Total || "0"}
                           </p>
                           <p className="text-xs text-gray-500">
-                            {new Date(quote.CreatedDate || quote.createdAt).toLocaleDateString()}
+                            {new Date(
+                              quote.CreatedDate || quote.createdAt,
+                            ).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -429,7 +544,9 @@ const DashboardLayout = () => {
               {/* Toggle + Title */}
               <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                 {isSidebarOpen && (
-                  <span className="font-bold text-lg tracking-wide">Bizpole</span>
+                  <span className="font-bold text-lg tracking-wide">
+                    Bizpole
+                  </span>
                 )}
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -448,14 +565,18 @@ const DashboardLayout = () => {
                         to={item.path}
                         className={({ isActive }) =>
                           `flex items-center gap-3 py-3 px-3 rounded-lg transition
-                        ${isActive
+                        ${
+                          isActive
                             ? "bg-gray-700 text-white"
-                            : "text-gray-300 hover:bg-gray-700 hover:text-white"}`
+                            : "text-gray-300 hover:bg-gray-700 hover:text-white"
+                        }`
                         }
                       >
                         <item.icon size={isSidebarOpen ? 24 : 20} />
                         {isSidebarOpen && (
-                          <span className="text-sm font-medium">{item.name}</span>
+                          <span className="text-sm font-medium">
+                            {item.name}
+                          </span>
                         )}
                       </NavLink>
                     </li>
@@ -471,27 +592,34 @@ const DashboardLayout = () => {
                 className="flex items-center gap-3 py-2 px-3 rounded-lg text-gray-300 hover:bg-gray-700 hover:text-white"
               >
                 <HelpCircle size={isSidebarOpen ? 24 : 20} />
-                {isSidebarOpen && <span className="text-sm font-medium">Help</span>}
+                {isSidebarOpen && (
+                  <span className="text-sm font-medium">Help</span>
+                )}
               </NavLink>
               <button
                 onClick={() => setShowConfirm(true)}
                 className="flex items-center gap-3 py-2 px-3 rounded-lg text-red-500 hover:bg-gray-700 hover:text-red-400"
               >
-                <LogOut size={isSidebarOpen ? 24 : 20}  />
-                {isSidebarOpen && <span className="text-sm font-medium">Logout</span>}
+                <LogOut size={isSidebarOpen ? 24 : 20} />
+                {isSidebarOpen && (
+                  <span className="text-sm font-medium">Logout</span>
+                )}
               </button>
-                  {/* Confirm Logout Modal - moved outside button for correct event handling */}
-                  <ConfirmMsg
-                    open={showConfirm}
-                    title="Logout"
-                    message="Do you want to logout?"
-                    confirmText="Logout"
-                    cancelText="Cancel"
-                    onConfirm={() => { setShowConfirm(false); handleLogout(); }}
-                    onCancel={() => setShowConfirm(false)}
-                    showCancel={true}
-                    variant="delete"
-                  />
+              {/* Confirm Logout Modal - moved outside button for correct event handling */}
+              <ConfirmMsg
+                open={showConfirm}
+                title="Logout"
+                message="Do you want to logout?"
+                confirmText="Logout"
+                cancelText="Cancel"
+                onConfirm={() => {
+                  setShowConfirm(false);
+                  handleLogout();
+                }}
+                onCancel={() => setShowConfirm(false)}
+                showCancel={true}
+                variant="delete"
+              />
             </div>
           </div>
 

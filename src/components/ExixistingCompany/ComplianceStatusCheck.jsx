@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { upsertRegistrationStatus } from "../../api/CompanyApi";
-import { useNavigate } from "react-router-dom";
 import { getAllStates } from "../../api/States";
+import { useNavigate } from "react-router-dom";
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 
 // Business type constants
@@ -13,23 +13,22 @@ const BUSINESS_TYPES = {
   PROPRIETORSHIP: "sole proprietorship"
 };
 
-const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
-  // Debug: Check registrationStatus prop received from RegistrationStatusForm
-  console.log("[ComplianceStatusCheck] registrationStatus prop:s", onNext, registrationStatusObj);
-  
+const ComplianceStatusCheck = ({ onBack, registrationDetails }) => {
   const navigate = useNavigate();
-  
+
   // Speech recognition hook
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
-  // Controlled state for all fields
+  // Controlled state for this step's fields
   const [form, setForm] = useState({
+    // Basic company information
     entityType: "",
     pan: "",
     tan: "",
     cin: "",
     llpin: "",
     din: "",
+    // Tax registration details
     gstEnabled: "",
     gstNumber: "",
     gstDate: "",
@@ -37,65 +36,62 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
     iec: "",
     udyam: "",
     stateId: "",
-    fssaiEnabled: "",
+    // FSSAI details
     fssaiNumber: "",
     fssaiDate: "",
     fssaiType: "",
-    esiEnabled: "",
+    // Labour compliance details
     esiNumber: "",
     esiDate: "",
-    pfEnabled: "",
     pfNumber: "",
     pfDate: "",
     professionalTaxEnabled: "",
     ptNumber: "",
     ptDate: "",
+    // Business details
     turnover: "",
     employees: "",
+    // Filing & return status
     businessUnderstanding: "",
     expectations: "",
+    gstReturnsUpToDate: "",
+    gstReturnsDetails: "",
+    rocFilingYear: "",
+    itReturnYear: "",
+    booksUpToDate: "",
+    hasAuditor: "",
   });
 
-  // Prefill form from localStorage if available
+  const [states, setStates] = useState([]);
+  const [activeField, setActiveField] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Whether the corresponding registration exists, answered back in Step 3 (Registration Status)
+  const has = registrationDetails || {};
+
+  // Prefill from localStorage company info where available
   useEffect(() => {
     try {
       const companyInfoRaw = window.localStorage.getItem("companyInfo");
       if (companyInfoRaw) {
         const companyInfo = JSON.parse(companyInfoRaw);
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
-          entityType: companyInfo.ConstitutionCategory || prev.entityType,
-          pan: companyInfo.CompanyPAN || prev.pan,
-          cin: companyInfo.CIN || prev.cin,
-          llpin: companyInfo.CIN && companyInfo.ConstitutionCategory === BUSINESS_TYPES.LLP ? companyInfo.CIN : prev.llpin,
-          gstEnabled: companyInfo.GSTNumber ? "yes" : prev.gstEnabled,
-          gstNumber: companyInfo.GSTNumber || prev.gstNumber,
-          stateId: companyInfo.State || prev.stateId,
-          turnover: companyInfo.Turnover || prev.turnover,
-          businessUnderstanding: companyInfo.BusinessNature || prev.businessUnderstanding,
-          // Add more fields as needed
+          entityType: prev.entityType || companyInfo.ConstitutionCategory || "",
+          pan: prev.pan || companyInfo.CompanyPAN || "",
+          cin: prev.cin || companyInfo.CIN || "",
+          llpin: prev.llpin || (companyInfo.CIN && companyInfo.ConstitutionCategory === BUSINESS_TYPES.LLP ? companyInfo.CIN : ""),
+          gstEnabled: prev.gstEnabled || (companyInfo.GSTNumber ? "yes" : ""),
+          gstNumber: prev.gstNumber || companyInfo.GSTNumber || "",
+          stateId: prev.stateId || companyInfo.State || "",
+          turnover: prev.turnover || companyInfo.Turnover || "",
         }));
       }
     } catch (err) {
       console.error("Error pre-filling form from localStorage:", err);
     }
   }, []);
-
-  const [activeField, setActiveField] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [states, setStates] = useState([]);
-  const [touched, setTouched] = useState({});
-  
-  // Entity type options
-  const entityTypes = [
-    { label: "Select Entity", value: "" },
-    { label: BUSINESS_TYPES.PRIVATE_LIMITED, value: BUSINESS_TYPES.PRIVATE_LIMITED },
-    { label: BUSINESS_TYPES.LLP, value: BUSINESS_TYPES.LLP },
-    { label: BUSINESS_TYPES.OPC, value: BUSINESS_TYPES.OPC },
-    { label: BUSINESS_TYPES.PARTNERSHIP, value: BUSINESS_TYPES.PARTNERSHIP },
-    { label: BUSINESS_TYPES.PROPRIETORSHIP, value: BUSINESS_TYPES.PROPRIETORSHIP },
-  ];
 
   // Load states on mount
   useEffect(() => {
@@ -111,19 +107,20 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
     fetchStates();
   }, []);
 
+  const entityTypes = [
+    { label: "Select Entity", value: "" },
+    { label: BUSINESS_TYPES.PRIVATE_LIMITED, value: BUSINESS_TYPES.PRIVATE_LIMITED },
+    { label: BUSINESS_TYPES.LLP, value: BUSINESS_TYPES.LLP },
+    { label: BUSINESS_TYPES.OPC, value: BUSINESS_TYPES.OPC },
+    { label: BUSINESS_TYPES.PARTNERSHIP, value: BUSINESS_TYPES.PARTNERSHIP },
+    { label: BUSINESS_TYPES.PROPRIETORSHIP, value: BUSINESS_TYPES.PROPRIETORSHIP },
+  ];
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
-
-  const handleBlur = (e) => {
-    const { name } = e.target;
-    setTouched((prev) => ({
-      ...prev,
-      [name]: true,
     }));
   };
 
@@ -137,131 +134,45 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
   const handleStop = () => {
     SpeechRecognition.stopListening();
     if (activeField === "business") {
-      setForm((prev) => ({ 
-        ...prev, 
-        businessUnderstanding: prev.businessUnderstanding + (prev.businessUnderstanding ? " " : "") + transcript 
+      setForm((prev) => ({
+        ...prev,
+        businessUnderstanding: prev.businessUnderstanding + (prev.businessUnderstanding ? " " : "") + transcript
       }));
     } else if (activeField === "expectation") {
-      setForm((prev) => ({ 
-        ...prev, 
-        expectations: prev.expectations + (prev.expectations ? " " : "") + transcript 
+      setForm((prev) => ({
+        ...prev,
+        expectations: prev.expectations + (prev.expectations ? " " : "") + transcript
       }));
     }
     setActiveField(null);
   };
 
-  // Validation helper
-  const hasError = (fieldName) => {
-    return touched[fieldName] && !form[fieldName]?.trim();
-  };
-
-  const validateForm = () => {
-    const errors = [];
-
-    // Basic validation for required fields
-    if (!form.entityType) {
-      errors.push("Entity Type is required");
-    }
-
-    // GST validation
-    if (form.gstEnabled === "yes") {
-      if (!form.gstNumber) {
-        errors.push("GST Number is required when GST is enabled");
-      }
-      if (!form.gstDate) {
-        errors.push("GST Registration Date is required");
-      }
-    }
-
-    // FSSAI validation
-    if (form.fssaiEnabled === "yes") {
-      if (!form.fssaiNumber) {
-        errors.push("FSSAI Number is required when FSSAI is enabled");
-      }
-      if (!form.fssaiDate) {
-        errors.push("FSSAI Registration Date is required");
-      }
-    }
-
-    // ESI validation
-    if (form.esiEnabled === "yes") {
-      if (!form.esiNumber) {
-        errors.push("ESI Number is required when ESI is enabled");
-      }
-      if (!form.esiDate) {
-        errors.push("ESI Registration Date is required");
-      }
-    }
-
-    // PF validation
-    if (form.pfEnabled === "yes") {
-      if (!form.pfNumber) {
-        errors.push("PF Number is required when PF is enabled");
-      }
-      if (!form.pfDate) {
-        errors.push("PF Registration Date is required");
-      }
-    }
-
-    // Professional Tax validation
-    if (form.professionalTaxEnabled === "yes") {
-      if (!form.ptNumber) {
-        errors.push("Professional Tax Number is required when PT is enabled");
-      }
-      if (!form.ptDate) {
-        errors.push("PT Registration Date is required");
-      }
-    }
-
-    return errors;
-  };
-
   const handleFinish = async (e) => {
     e.preventDefault();
-    
-    // Mark all fields as touched for validation
-    const newTouched = {};
-    Object.keys(form).forEach(key => {
-      newTouched[key] = true;
-    });
-    setTouched(newTouched);
-
-    // Validate form
-    const validationErrors = validateForm();
-    if (validationErrors.length > 0) {
-      setError(validationErrors[0]);
-      return;
-    }
 
     setLoading(true);
     setError("");
-    
+
     try {
-      // Prepare compliance data for API
       const complianceData = {
         ...form,
-        // Clean up empty values
         gstNumber: form.gstEnabled === "yes" ? form.gstNumber : "",
         gstDate: form.gstEnabled === "yes" ? form.gstDate : "",
-        fssaiNumber: form.fssaiEnabled === "yes" ? form.fssaiNumber : "",
-        fssaiDate: form.fssaiEnabled === "yes" ? form.fssaiDate : "",
-        esiNumber: form.esiEnabled === "yes" ? form.esiNumber : "",
-        esiDate: form.esiEnabled === "yes" ? form.esiDate : "",
-        pfNumber: form.pfEnabled === "yes" ? form.pfNumber : "",
-        pfDate: form.pfEnabled === "yes" ? form.pfDate : "",
+        iec: has.iecEnabled === "yes" ? form.iec : "",
+        fssaiNumber: has.fssaiEnabled === "yes" ? form.fssaiNumber : "",
+        fssaiDate: has.fssaiEnabled === "yes" ? form.fssaiDate : "",
+        esiNumber: has.esiEnabled === "yes" ? form.esiNumber : "",
+        esiDate: has.esiEnabled === "yes" ? form.esiDate : "",
+        pfNumber: has.pfEnabled === "yes" ? form.pfNumber : "",
+        pfDate: has.pfEnabled === "yes" ? form.pfDate : "",
         ptNumber: form.professionalTaxEnabled === "yes" ? form.ptNumber : "",
         ptDate: form.professionalTaxEnabled === "yes" ? form.ptDate : "",
+        gstReturnsDetails: form.gstReturnsUpToDate === "yes" ? form.gstReturnsDetails : "",
       };
 
-      // Flatten registrationStatusObj if it contains nested registrationStatus or CompanyID
-      let flatRegistrationStatus = registrationStatusObj || {};
-      if (flatRegistrationStatus.registrationStatus) {
-        flatRegistrationStatus = flatRegistrationStatus.registrationStatus;
-      }
-      
-      // Merge flat registration status and compliance data
+      // Merge Step 3's registration details with this step's compliance data
       const mergedStatus = {
-        ...flatRegistrationStatus,
+        ...has,
         ...complianceData
       };
 
@@ -283,15 +194,11 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
         CompanyID = Number(CompanyID);
       }
 
-      // Prepare final payload for API (matches backend expectation)
       const payload = {
         CompanyID,
         registrationStatus: mergedStatus
       };
 
-      console.log("📤 Sending registrationStatus payload:", payload);
-
-      // Call the API function
       const response = await upsertRegistrationStatus(payload);
       console.log("✅ Registration & compliance status saved successfully:", response);
 
@@ -318,11 +225,11 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
       {/* Header with Logo - Mobile/Tablet */}
       <div className="lg:hidden flex justify-between items-center p-4 bg-white shadow-sm">
         <h1 className="text-xl font-bold text-gray-800">Compliance Status</h1>
-       <img
-              src="/Images/logo.webp"
-              alt="Bizpole Logo"
-              className="h-12 md:h-14 lg:h-14"
-            /> 
+        <img
+          src="/Images/logo.webp"
+          alt="Bizpole Logo"
+          className="h-12 md:h-14 lg:h-14"
+        />
       </div>
 
       {/* Left Section */}
@@ -334,21 +241,21 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
               <h1 className="text-2xl font-bold text-gray-800">Compliance Status Check</h1>
               <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 w-20 bg-yellow-400 rounded-full"></div>
-                <span className="text-xs text-gray-500">Step 3 of 3</span>
+                <span className="text-xs text-gray-500">Step 4 of 4</span>
               </div>
             </div>
             <img
               src="/Images/logo.webp"
               alt="Bizpole Logo"
               className="h-12 md:h-14 lg:h-14"
-            /> 
+            />
           </div>
 
           {/* Mobile Header Progress */}
           <div className="lg:hidden mb-4">
             <div className="flex items-center gap-2">
               <div className="h-1.5 w-20 bg-yellow-400 rounded-full"></div>
-              <span className="text-xs text-gray-500">Step 3 of 3</span>
+              <span className="text-xs text-gray-500">Step 4 of 4</span>
             </div>
           </div>
 
@@ -360,31 +267,22 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 Basic Company Information
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Entity Type */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Entity Type <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">Entity Type</label>
                   <select
                     name="entityType"
                     value={form.entityType}
                     onChange={handleChange}
-                    onBlur={handleBlur}
-                    className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                      hasError("entityType") ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                    }`}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                   >
-                    {entityTypes.map(opt => (
+                    {entityTypes.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
                 </div>
 
-                {/* PAN Number */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    PAN Number
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">PAN Number</label>
                   <input
                     type="text"
                     name="pan"
@@ -396,11 +294,8 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   />
                 </div>
 
-                {/* TAN Number */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    TAN Number
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">TAN Number</label>
                   <input
                     type="text"
                     name="tan"
@@ -411,12 +306,9 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   />
                 </div>
 
-                {/* CIN - Conditional */}
                 {(form.entityType === BUSINESS_TYPES.PRIVATE_LIMITED || form.entityType === BUSINESS_TYPES.OPC) && (
                   <div>
-                    <label className="block mb-1 text-xs font-medium text-gray-600">
-                      CIN Number
-                    </label>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">CIN Number</label>
                     <input
                       type="text"
                       name="cin"
@@ -428,12 +320,9 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   </div>
                 )}
 
-                {/* LLPIN - Conditional */}
                 {form.entityType === BUSINESS_TYPES.LLP && (
                   <div>
-                    <label className="block mb-1 text-xs font-medium text-gray-600">
-                      LLPIN Number
-                    </label>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">LLPIN Number</label>
                     <input
                       type="text"
                       name="llpin"
@@ -445,11 +334,8 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   </div>
                 )}
 
-                {/* DIN Number */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    DIN Number
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">DIN Number</label>
                   <input
                     type="text"
                     name="din"
@@ -468,11 +354,8 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 Tax Registration Details
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* GST Registered? */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    GST Registered?
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">GST Registered?</label>
                   <select
                     name="gstEnabled"
                     value={form.gstEnabled}
@@ -485,46 +368,33 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   </select>
                 </div>
 
-                {/* GST Number - Conditional */}
                 {form.gstEnabled === "yes" && (
                   <>
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        GST Number <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">GST Number</label>
                       <input
                         type="text"
                         name="gstNumber"
                         value={form.gstNumber}
                         onChange={handleChange}
-                        onBlur={handleBlur}
                         placeholder="e.g. 07AABCU9603R1ZM"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.gstNumber && !form.gstNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        GST Registration Date <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">GST Registration Date</label>
                       <input
                         type="date"
                         name="gstDate"
                         value={form.gstDate}
                         onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.gstDate && !form.gstDate ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        GST Registration Type
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">GST Registration Type</label>
                       <select
                         name="gstType"
                         value={form.gstType}
@@ -539,26 +409,22 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   </>
                 )}
 
-                {/* IEC */}
-                <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Import Export Code (IEC)
-                  </label>
-                  <input
-                    type="text"
-                    name="iec"
-                    value={form.iec}
-                    onChange={handleChange}
-                    placeholder="e.g. IEC123456789"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
-                  />
-                </div>
+                {has.iecEnabled === "yes" && (
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">Import Export Code (IEC)</label>
+                    <input
+                      type="text"
+                      name="iec"
+                      value={form.iec}
+                      onChange={handleChange}
+                      placeholder="e.g. IEC123456789"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                    />
+                  </div>
+                )}
 
-                {/* Udyam */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Udyam Registration Number
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">Udyam Registration Number</label>
                   <input
                     type="text"
                     name="udyam"
@@ -569,11 +435,8 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                   />
                 </div>
 
-                {/* State */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    State
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">State</label>
                   <select
                     name="stateId"
                     value={form.stateId}
@@ -592,84 +455,52 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
             </div>
 
             {/* ================= FSSAI ================= */}
-            <div className="bg-white rounded-xl shadow-sm p-5">
-              <h4 className="font-semibold text-base mb-4 border-b border-gray-100 pb-2 text-gray-700">
-                Food & Safety Compliance (FSSAI)
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* FSSAI Registered? */}
-                <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    FSSAI Registered?
-                  </label>
-                  <select
-                    name="fssaiEnabled"
-                    value={form.fssaiEnabled}
-                    onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
-                  >
-                    <option value="">Select Option</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
+            {has.fssaiEnabled === "yes" && (
+              <div className="bg-white rounded-xl shadow-sm p-5">
+                <h4 className="font-semibold text-base mb-4 border-b border-gray-100 pb-2 text-gray-700">
+                  Food & Safety Compliance (FSSAI)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">FSSAI Number</label>
+                    <input
+                      type="text"
+                      name="fssaiNumber"
+                      value={form.fssaiNumber}
+                      onChange={handleChange}
+                      placeholder="e.g. 12345678901234"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">FSSAI Registration Date</label>
+                    <input
+                      type="date"
+                      name="fssaiDate"
+                      value={form.fssaiDate}
+                      onChange={handleChange}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">FSSAI Type</label>
+                    <select
+                      name="fssaiType"
+                      value={form.fssaiType}
+                      onChange={handleChange}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                    >
+                      <option value="">Select Type</option>
+                      <option value="basic">Basic</option>
+                      <option value="state">State</option>
+                      <option value="central">Central</option>
+                    </select>
+                  </div>
                 </div>
-
-                {/* FSSAI Number - Conditional */}
-                {form.fssaiEnabled === "yes" && (
-                  <>
-                    <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        FSSAI Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="fssaiNumber"
-                        value={form.fssaiNumber}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        placeholder="e.g. 12345678901234"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.fssaiNumber && !form.fssaiNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        FSSAI Registration Date <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="date"
-                        name="fssaiDate"
-                        value={form.fssaiDate}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.fssaiDate && !form.fssaiDate ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        FSSAI Type
-                      </label>
-                      <select
-                        name="fssaiType"
-                        value={form.fssaiType}
-                        onChange={handleChange}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
-                      >
-                        <option value="">Select Type</option>
-                        <option value="basic">Basic</option>
-                        <option value="state">State</option>
-                        <option value="central">Central</option>
-                      </select>
-                    </div>
-                  </>
-                )}
               </div>
-            </div>
+            )}
 
             {/* ================= LABOUR COMPLIANCE ================= */}
             <div className="bg-white rounded-xl shadow-sm p-5">
@@ -677,119 +508,62 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 Labour Compliance
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* ESI */}
-                <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    ESI Registered?
-                  </label>
-                  <select
-                    name="esiEnabled"
-                    value={form.esiEnabled}
-                    onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
-                  >
-                    <option value="">Select Option</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-
-                {form.esiEnabled === "yes" && (
+                {has.esiEnabled === "yes" && (
                   <>
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        ESI Registration Number <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">ESI Registration Number</label>
                       <input
                         type="text"
                         name="esiNumber"
                         value={form.esiNumber}
                         onChange={handleChange}
-                        onBlur={handleBlur}
                         placeholder="e.g. ESI12345678"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.esiNumber && !form.esiNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        ESI Registration Date <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">ESI Registration Date</label>
                       <input
                         type="date"
                         name="esiDate"
                         value={form.esiDate}
                         onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.esiDate && !form.esiDate ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
                   </>
                 )}
 
-                {/* PF */}
-                <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    PF Registered?
-                  </label>
-                  <select
-                    name="pfEnabled"
-                    value={form.pfEnabled}
-                    onChange={handleChange}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
-                  >
-                    <option value="">Select Option</option>
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                </div>
-
-                {form.pfEnabled === "yes" && (
+                {has.pfEnabled === "yes" && (
                   <>
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        PF Registration Number <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">EPF Registration Number</label>
                       <input
                         type="text"
                         name="pfNumber"
                         value={form.pfNumber}
                         onChange={handleChange}
-                        onBlur={handleBlur}
                         placeholder="e.g. PF12345678"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.pfNumber && !form.pfNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        PF Registration Date <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">EPF Registration Date</label>
                       <input
                         type="date"
                         name="pfDate"
                         value={form.pfDate}
                         onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.pfDate && !form.pfDate ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
                   </>
                 )}
 
-                {/* Professional Tax */}
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Professional Tax Registered?
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">Professional Tax Registered?</label>
                   <select
                     name="professionalTaxEnabled"
                     value={form.professionalTaxEnabled}
@@ -805,35 +579,25 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 {form.professionalTaxEnabled === "yes" && (
                   <>
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        PT Registration Number <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">PT Registration Number</label>
                       <input
                         type="text"
                         name="ptNumber"
                         value={form.ptNumber}
                         onChange={handleChange}
-                        onBlur={handleBlur}
                         placeholder="e.g. PT12345678"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.ptNumber && !form.ptNumber ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block mb-1 text-xs font-medium text-gray-600">
-                        PT Registration Date <span className="text-red-500">*</span>
-                      </label>
+                      <label className="block mb-1 text-xs font-medium text-gray-600">PT Registration Date</label>
                       <input
                         type="date"
                         name="ptDate"
                         value={form.ptDate}
                         onChange={handleChange}
-                        onBlur={handleBlur}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 transition-all ${
-                          touched.ptDate && !form.ptDate ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-yellow-200'
-                        }`}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                       />
                     </div>
                   </>
@@ -848,9 +612,7 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Annual Turnover (₹)
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">Annual Turnover (₹)</label>
                   <input
                     type="number"
                     name="turnover"
@@ -862,9 +624,7 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-xs font-medium text-gray-600">
-                    Number of Employees
-                  </label>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">Number of Employees</label>
                   <input
                     type="number"
                     name="employees"
@@ -873,6 +633,115 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                     placeholder="e.g. 50"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* ================= FILING & RETURN STATUS ================= */}
+            <div className="bg-white rounded-xl shadow-sm p-5">
+              <h4 className="font-semibold text-base mb-4 border-b border-gray-100 pb-2 text-gray-700">
+                Filing & Return Status
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* GST Returns Up to Date */}
+                <div>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    Are GST returns up to date?
+                  </label>
+                  <select
+                    name="gstReturnsUpToDate"
+                    value={form.gstReturnsUpToDate}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                  >
+                    <option value="">Select Option</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="na">NA</option>
+                  </select>
+                </div>
+
+                {/* GST Returns Details - Conditional */}
+                {form.gstReturnsUpToDate === "yes" && (
+                  <div>
+                    <label className="block mb-1 text-xs font-medium text-gray-600">
+                      GST Return Details
+                    </label>
+                    <input
+                      type="text"
+                      name="gstReturnsDetails"
+                      value={form.gstReturnsDetails}
+                      onChange={handleChange}
+                      placeholder="e.g. Filed up to June 2026"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                    />
+                  </div>
+                )}
+
+                {/* ROC Filing */}
+                <div>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    Is ROC filing current?
+                  </label>
+                  <input
+                    type="text"
+                    name="rocFilingYear"
+                    value={form.rocFilingYear}
+                    onChange={handleChange}
+                    placeholder="Financial year of last ROC return"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                  />
+                </div>
+
+                {/* IT Return */}
+                <div>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    Is IT return up to date?
+                  </label>
+                  <input
+                    type="text"
+                    name="itReturnYear"
+                    value={form.itReturnYear}
+                    onChange={handleChange}
+                    placeholder="Financial year of last IT return"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                  />
+                </div>
+
+                {/* Books of Accounts */}
+                <div>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    Books of accounts up to date?
+                  </label>
+                  <select
+                    name="booksUpToDate"
+                    value={form.booksUpToDate}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                  >
+                    <option value="">Select Option</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="na">NA</option>
+                  </select>
+                </div>
+
+                {/* Auditor */}
+                <div>
+                  <label className="block mb-1 text-xs font-medium text-gray-600">
+                    Do you have an auditor?
+                  </label>
+                  <select
+                    name="hasAuditor"
+                    value={form.hasAuditor}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-yellow-400 hover:border-yellow-200 transition-all"
+                  >
+                    <option value="">Select Option</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                    <option value="na">NA</option>
+                  </select>
                 </div>
               </div>
             </div>
@@ -969,20 +838,20 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
           {/* Bottom Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
             <button
-              onClick={onPrev}
+              onClick={onBack}
               className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-full text-gray-600 transition-all disabled:opacity-50"
               title="Back"
               disabled={loading}
             >
               ←
             </button>
-            
+
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input type="checkbox" className="w-3.5 h-3.5 accent-yellow-400" />
                 <span className="text-xs text-gray-600">Save & continue later</span>
               </label>
-              
+
               <button
                 className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-6 py-2.5 rounded-full flex items-center gap-1.5 transition-all shadow-sm hover:shadow text-sm disabled:opacity-50"
                 onClick={handleFinish}
@@ -1018,12 +887,12 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
       <div className="hidden lg:block w-80 bg-gradient-to-b from-yellow-400 to-yellow-500 text-white p-6 rounded-tl-3xl rounded-bl-3xl">
         <div className="sticky top-6">
           <h2 className="font-bold text-lg mb-1 text-center">Quick Setup</h2>
-          <p className="text-yellow-100 text-xs mb-8 text-center">Complete these 3 steps</p>
-          
+          <p className="text-yellow-100 text-xs mb-8 text-center">Complete these 4 steps</p>
+
           <div className="relative">
             {/* Progress Line */}
             <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-yellow-300"></div>
-            
+
             {/* Step 1 - Completed */}
             <div className="relative flex items-center gap-3 mb-8">
               <div className="w-6 h-6 bg-white text-yellow-500 rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0">
@@ -1036,7 +905,7 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 <p className="text-yellow-100 text-xs">Completed</p>
               </div>
             </div>
-            
+
             {/* Step 2 - Completed */}
             <div className="relative flex items-center gap-3 mb-8">
               <div className="w-6 h-6 bg-white text-yellow-500 rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0">
@@ -1049,10 +918,23 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
                 <p className="text-yellow-100 text-xs">Completed</p>
               </div>
             </div>
-            
-            {/* Step 3 - Current */}
+
+            {/* Step 3 - Completed */}
+            <div className="relative flex items-center gap-3 mb-8">
+              <div className="w-6 h-6 bg-white text-yellow-500 rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm text-white">Registration Status</h3>
+                <p className="text-yellow-100 text-xs">Completed</p>
+              </div>
+            </div>
+
+            {/* Step 4 - Current */}
             <div className="relative flex items-center gap-3">
-              <div className="w-6 h-6 bg-white text-yellow-500 rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0">3</div>
+              <div className="w-6 h-6 bg-white text-yellow-500 rounded-full flex items-center justify-center font-bold text-xs z-10 shadow flex-shrink-0">4</div>
               <div>
                 <h3 className="font-semibold text-sm text-white">Compliance</h3>
                 <p className="text-yellow-100 text-xs">Final verification & documents</p>
@@ -1060,7 +942,7 @@ const ComplianceStatusCheck = ({ onNext, onPrev, registrationStatusObj }) => {
               </div>
             </div>
           </div>
-          
+
           {/* Progress Summary */}
           <div className="mt-10 p-3 bg-white/10 rounded-lg backdrop-blur-sm">
             <div className="flex justify-between mb-1 text-xs text-white">

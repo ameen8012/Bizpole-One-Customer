@@ -1,6 +1,14 @@
 // src/api/upsertQuote.js
 import axiosInstance from "./axiosInstance";
 import { setSecureItem, getSecureItem } from "../utils/secureStorage";
+import { fetchFranchiseeGstInfo, calcGstAmount, splitGst } from "../utils/gstCalc";
+
+// Does this company have any Quote at all? Used to route a customer-portal
+// "Call back request" to a Lead (no quotes -> new user) vs. a Deal (existing client).
+export const checkCompanyHasQuote = async (companyId) => {
+  const res = await axiosInstance.get(`/quote/exists-by-company/${companyId}`);
+  return res.data;
+};
 
 // src/api/upsertQuote.js - Modified version to handle both package and individual quotes
 export const upsertQuote = async (plan) => {
@@ -53,12 +61,14 @@ export const upsertQuote = async (plan) => {
           SelectedCompany = {
             CompanyID: parsedSelected.CompanyID,
             CompanyName: parsedSelected.CompanyName || "",
+            State: parsedSelected.State || "",
           };
         } else if (user?.Companies?.length > 0) {
           const first = user.Companies[0];
           SelectedCompany = {
             CompanyID: first.CompanyID,
             CompanyName: first.BusinessName || first.CompanyName || "",
+            State: first.State || "",
           };
         } else {
           SelectedCompany = { CompanyID: null, CompanyName: "" };
@@ -115,25 +125,49 @@ export const upsertQuote = async (plan) => {
         payload.MailQuoteCustomers = plan.MailQuoteCustomers;
       }
     } else {
-      // Package services - transform from package format
-      payload.ServiceDetails = (plan.services || []).map((s) => ({
-        ServiceID: s.ServiceID,
-        ItemName: s.ServiceName,
-        ProfessionalFee: s.ProfessionalFee != null ? parseFloat(s.ProfessionalFee) : 
-                        s.ProfessionalFeeYearly != null ? parseFloat(s.ProfessionalFeeYearly) : 1000,
-        VendorFee: s.VendorFee != null ? parseFloat(s.VendorFee) : 
-                  s.VendorFeeYearly != null ? parseFloat(s.VendorFeeYearly) : 500,
-        GovtFee: s.GovernmentFee != null ? parseFloat(s.GovernmentFee) : 
-                s.GovernmentFeeYearly != null ? parseFloat(s.GovernmentFeeYearly) : 200,
-        ContractorFee: 0,
-        GSTPercent: 18,
-        Discount: 0,
-        Rounding: 0,
-        Total: s.TotalFee != null ? parseFloat(s.TotalFee) : 
-               s.TotalFeeYearly != null ? parseFloat(s.TotalFeeYearly) : 1700,
-        AdvanceAmount: 500,
-        PendingAmount: 1200,
-      }));
+      // Package services - transform from package format.
+      // SubscriptionPackageServices only has *Yearly/*Monthly fee columns (no plain
+      // ProfessionalFee/VendorFee/GovernmentFee/TotalFee), so pick the right pair
+      // based on billing period instead of falling through to hardcoded placeholders.
+      const isMonthlyBilling = payload.IsMonthly === 1;
+      const { gstEligible, state: franchiseeState } = await fetchFranchiseeGstInfo(franchiseeId);
+      const buyerState = SelectedCompany?.State || "";
+
+      payload.ServiceDetails = (plan.services || []).map((s) => {
+        const professionalFee = isMonthlyBilling
+          ? Number(s.ProfessionalFeeMonthly ?? s.ProfessionalFee ?? 0)
+          : Number(s.ProfessionalFeeYearly ?? s.ProfessionalFee ?? 0);
+        const vendorFee = isMonthlyBilling
+          ? Number(s.VendorFeeMonthly ?? s.VendorFee ?? 0)
+          : Number(s.VendorFeeYearly ?? s.VendorFee ?? 0);
+        const govtFee = isMonthlyBilling
+          ? Number(s.GovernmentFeeMonthly ?? s.GovernmentFee ?? 0)
+          : Number(s.GovernmentFeeYearly ?? s.GovernmentFee ?? 0);
+
+        const gstAmount = calcGstAmount(professionalFee, vendorFee, gstEligible);
+        const { cgst, sgst, igst } = splitGst(gstAmount, franchiseeState, buyerState);
+        const total = professionalFee + vendorFee + govtFee + gstAmount;
+        const advanceAmount = Math.ceil(total * 0.3);
+
+        return {
+          ServiceID: s.ServiceID,
+          ItemName: s.ServiceName,
+          ProfessionalFee: professionalFee,
+          VendorFee: vendorFee,
+          GovtFee: govtFee,
+          ContractorFee: 0,
+          GSTPercent: gstEligible ? 18 : 0,
+          GstAmount: gstAmount,
+          CGST: cgst,
+          SGST: sgst,
+          IGST: igst,
+          Discount: 0,
+          Rounding: 0,
+          Total: total,
+          AdvanceAmount: advanceAmount,
+          PendingAmount: total - advanceAmount,
+        };
+      });
 
       payload.MailQuoteCustomers = [
         user?.CustomerID
@@ -182,6 +216,10 @@ export const upsertQuote = async (plan) => {
           );
 
           setSecureItem("user", JSON.stringify(storedUser));
+          // DashboardLayout loads its `quotes` state once on mount and never
+          // remounts on client-side nav, so it won't see this localStorage
+          // update on its own — tell it to re-read.
+          window.dispatchEvent(new Event("quotes-updated"));
         }
       } catch (e) {
         console.log("Failed updating quotes in storage", e);

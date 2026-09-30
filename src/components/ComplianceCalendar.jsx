@@ -3,44 +3,46 @@ import React, { useState, useEffect } from "react";
 import { getCompanyCompliances } from "../api/Complaince/Complainceapi";
 import { getSecureItem } from "../utils/secureStorage";
 
-// Example usage:
-// <ComplianceCalendar
-//   value={scorePercent}
-//   compliances={[{complianceName, due_date, ...}]}
-//   onComplianceClick={compliance => {}}
-// />
-
-const ComplianceCalendar = ({ value = 27.5, compliances = [], onComplianceClick }) => {
+const ComplianceCalendar = ({ compliances = [], onComplianceClick }) => {
   const [animatedValue, setAnimatedValue] = useState(0);
   const [popupCompliance, setPopupCompliance] = useState(null);
   const [fetchedCompliances, setFetchedCompliances] = useState([]);
+  const [companyId, setCompanyId] = useState(() => getSecureItem("selectedCompany")?.CompanyID || null);
+
+  // Re-fetch when company is switched from the dropdown
+  useEffect(() => {
+    const handler = () => {
+      const company = getSecureItem("selectedCompany");
+      setCompanyId(company?.CompanyID || null);
+    };
+    window.addEventListener("company-switched", handler);
+    return () => window.removeEventListener("company-switched", handler);
+  }, []);
 
   // Fetch compliances from API using secureStorage selectedCompany
   useEffect(() => {
-    const selectedCompany = getSecureItem("selectedCompany");
-    const companyId = selectedCompany?.CompanyID;
     if (!companyId) return;
     async function fetchData() {
       const data = await getCompanyCompliances(companyId);
       setFetchedCompliances(data);
     }
     fetchData();
-  }, []);
+  }, [companyId]);
 
   // Use fetched compliances if available
   const compliancesToShow = fetchedCompliances.length > 0 ? fetchedCompliances : compliances;
 
-  // Calculate total score weight and achieved score
-  const totalScoreWeight = compliancesToShow.reduce((sum, c) => sum + (c.scoreWeight || 0), 0);
+  // API returns scoreWeight aliased as `score`; fall back to scoreWeight for safety
+  const getWeight = (c) => Number(c.score ?? c.scoreWeight ?? 0);
+
+  const totalScoreWeight = compliancesToShow.reduce((sum, c) => sum + getWeight(c), 0);
   const achievedScore = compliancesToShow.reduce((sum, c) => {
-    // Achieved score is the sum of scoreWeight for completed compliances only
-    if (c.status && c.status.toLowerCase() === 'completed') {
-      return sum + (c.scoreWeight || 0);
+    if (c.status && c.status.toLowerCase() === "filed") {
+      return sum + getWeight(c);
     }
     return sum;
   }, 0);
 
-  // Only use real data; show 0 if no compliances or scoreWeight
   const calculatedValue = totalScoreWeight > 0 ? (achievedScore / totalScoreWeight) * 100 : 0;
 
   // Animate needle smoothly when value changes
@@ -76,11 +78,11 @@ const ComplianceCalendar = ({ value = 27.5, compliances = [], onComplianceClick 
     const angle = gaugeStart + (i / (totalSegments - 1)) * gaugeRange;
     let segmentColor;
     if (i < totalSegments * 0.4) {
-      segmentColor = "#10b981"; // Green
+      segmentColor = "#ef4444"; // Red (low compliance)
     } else if (i < totalSegments * 0.7) {
-      segmentColor = "#f59e0b"; // Yellow/Orange
+      segmentColor = "#f59e0b"; // Yellow/Orange (medium)
     } else {
-      segmentColor = "#ef4444"; // Red
+      segmentColor = "#10b981"; // Green (high compliance)
     }
     return {
       angle,
@@ -212,7 +214,7 @@ const ComplianceCalendar = ({ value = 27.5, compliances = [], onComplianceClick 
       {/* Value */}
       <div className="text-center mb-8">
         <div className="text-4xl font-bold text-gray-700 mb-1">
-          {totalScoreWeight}
+          {calculatedValue.toFixed(1)}%
         </div>
         <div className="text-base text-gray-500 font-medium">Calendar</div>
       

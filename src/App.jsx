@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import AOS from "aos";
+import useAutoLogout from "./hooks/useAutoLogout";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -13,6 +14,7 @@ import StartYourBusiness from "./components/StartYourBusiness";
 import Quiz from "./components/Quiz";
 import BusinessPanel from "./components/BusinessPanel";
 import Tellabout from "./components/Tellabout";
+import NewCompanyFlow from "./components/NewCompanyFlow";
 import Subscription from "./components/Subscription";
 import Payment from "./components/Payment";
 
@@ -26,6 +28,8 @@ import BizpoleOneDashboardLayout from "./pages/BizpoleOneDashboardLayout";
 import BizpoleOne from "./pages/BizpoleOne";
 import BizpoleOneServices from "./pages/BizpoleOneServices";
 import BizpoleOneTasks from "./pages/BizpoleOneTasks";
+import Refunds from "./pages/Refunds";
+import SupportTickets from "./pages/SupportTickets";
 
 import ProfileLayout from "./pages/ProfileLayout";
 import ProfilePage from "./pages/ProfilePage";
@@ -82,23 +86,20 @@ import ExploreServices from "./pages/associate/ExploreServices";
 function App() {
   const location = useLocation();
 
+  useAutoLogout();
+
   useEffect(() => {
     AOS.init({ duration: 1000 });
   }, []);
 
   // Hide Navbar & Footer for these paths
   const hideLayoutPaths = [
-    "/startbusiness",
-    "/startbusiness/choose",
-    "/startbusiness/quiz",
-    "/startbusiness/about",
-    "/startbusiness/subscriptions",
     "/payments",
     "/quiz",
     "/profile",
-    "/existing-companies",
-    "/dashboard",
+    // "/existing-companies",
     "/associate",
+    "/dashboard",
   ];
 
   const hideLayout = hideLayoutPaths.some((path) =>
@@ -142,6 +143,7 @@ function App() {
           <Route path="/services/:id" element={<ServiceDetails />} />
           <Route path="/products" element={<ProductList />} />
           <Route path="/partners" element={<Partners />} />
+          <Route path="/startbusiness/apply" element={<NewCompanyFlow />} />
           <Route path="/startbusiness/about" element={<Tellabout />} />
           <Route path="/startbusiness/subscriptions" element={<Subscription />} />
           <Route path="/payments" element={<Payment />} />
@@ -183,6 +185,9 @@ function App() {
                   <Route path="pricing" element={<Plansandpricing />} />
                   <Route path="individual" element={<MyIndividualservices />} />
                   <Route path="chat" element={<ChatPage />} />
+                  <Route path="billing" element={<Invoiceprofile showRefundLink />} />
+                  <Route path="refunds" element={<Refunds />} />
+                  <Route path="support" element={<SupportTickets />} />
                 </Route>
               </Route>
 
@@ -212,8 +217,8 @@ function App() {
         </main>
 
         {!hideLayout && <Footer />}
-        {/* Global floating cart, always visible */}
-        <GlobalCart />
+        {/* Global floating cart — only on public marketing/service pages, not inside dashboard/profile/associate */}
+        {!hideLayout && location.pathname !== "/" && <GlobalCart />}
       </div>
     </CartProvider>
   );
