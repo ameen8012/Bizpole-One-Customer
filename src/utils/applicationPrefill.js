@@ -1,5 +1,5 @@
 import { getSecureItem } from "./secureStorage";
-import { FLOWS, STATES, BIZ_TYPES } from "../components/ExixistingCompany/existingCompanyData";
+import { FLOWS, STATES, BIZ_TYPES, LEAD_LANGUAGES } from "../components/ExixistingCompany/existingCompanyData";
 
 // Same prefix FlowRunner saves each flow's progress under (`${STORAGE_KEY}_${flowId}`).
 const FLOW_STATE_PREFIX = "existingCompanyFlowState_";
@@ -56,6 +56,10 @@ export function existingCompanyAnswers(company, contact) {
   if (contact) {
     put("ex_contact", contact.name);
     put("ex_mobile", contact.mobile);
+    put("ex_email", contact.email);
+    if (!A.ex_state && STATES.includes(contact.state)) A.ex_state = contact.state;
+    const lang = LEAD_LANGUAGES.find((l) => l.toLowerCase() === String(contact.language || "").trim().toLowerCase());
+    if (lang) A.ex_language = lang;
   }
   return A;
 }

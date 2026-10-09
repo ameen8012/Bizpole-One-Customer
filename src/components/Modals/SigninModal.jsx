@@ -10,8 +10,10 @@ import { notifyTokenSet } from "../../utils/authSession";
 
 // initialValue: prefill the phone/email box. onSuccess(tokenData): run after
 // sign-in instead of the default redirect to the dashboard (e.g. an
-// application flow that should stay on its current step).
-const SigninModal = ({ isOpen = true, onClose = () => { }, initialValue = "", onSuccess }) => {
+// application flow that should stay on its current step). onSignup: replaces the
+// "Sign up" link's default jump to /startbusiness (e.g. so an application flow
+// can switch to its own sign-up form without leaving the current step).
+const SigninModal = ({ isOpen = true, onClose = () => { }, initialValue = "", onSuccess, onSignup }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState("signin"); // 'signin' or 'signup'
   const [step, setStep] = useState(1);
@@ -312,7 +314,7 @@ const SigninModal = ({ isOpen = true, onClose = () => { }, initialValue = "", on
                     Don't Have An Account ? {" "}
                     <span
                       className="font-semibold underline cursor-pointer text-gray-800 hover:text-yellow-600 transition-colors"
-                      onClick={() => navigate("/startbusiness")}
+                      onClick={() => (onSignup ? onSignup() : navigate("/startbusiness"))}
                     >
                       Sign up
                     </span>

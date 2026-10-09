@@ -34,6 +34,11 @@ export const STATES = [
   "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal", "Other",
 ];
 
+// Same languages as FlowRunner's lead forms (sent lower-cased as preferred_language).
+export const LEAD_LANGUAGES = [
+  "English", "Hindi", "Marathi", "Tamil", "Telugu", "Gujarati", "Bengali", "Kannada", "Malayalam",
+];
+
 export const BIZ_TYPES = [
   "Private Limited Company", "Limited Liability Partnership (LLP)", "One Person Company (OPC)",
   "Partnership Firm", "Sole Proprietorship", "Other",
@@ -525,7 +530,15 @@ export function newcoBusinessSteps(A) {
     { id: "address", title: "Business Address", fields: [
       ...addressFields("", "Where will the business operate from?"),
       ynField("isRegisteredAddress", "Is this the registered business address?", { full: true }),
-      cardsField("propertyType", "Do you own or rent this property?", ["Owned", "Rented", "Leased", "Other"], { cols: 2, full: true }),
+      // Not the registered address → either Bizpole arranges a virtual office
+      // (just the preferred location), or the applicant enters their separate
+      // registered office address below.
+      ynField("wantsVirtualOffice", "Are you looking for a virtual office?", { full: true, showIf: (A) => A.isRegisteredAddress === "No" }),
+      noteField(() => ({ variant: "info", body: "Our team will arrange a virtual office to use as your registered business address. Tell us where you'd like it." }), { full: true, showIf: (A) => A.isRegisteredAddress === "No" && A.wantsVirtualOffice === "Yes" }),
+      pickField("vo_state", "Preferred State for Virtual Office", STATES, { showIf: (A) => A.isRegisteredAddress === "No" && A.wantsVirtualOffice === "Yes" }),
+      textField("vo_city", "Preferred City for Virtual Office", { showIf: (A) => A.isRegisteredAddress === "No" && A.wantsVirtualOffice === "Yes" }),
+      ...addressFields("reg", "Registered office address").map((f) => ({ ...f, ...(f.label && { label: "Registered " + f.label }), showIf:(A) => A.isRegisteredAddress === "No" && A.wantsVirtualOffice === "No" })),
+      cardsField("propertyType", "Do you own or rent this property?", ["Owned", "Rented", "Leased", "Other"], { cols: 2, full: true, showIf: (A) => A.isRegisteredAddress === "Yes" || A.wantsVirtualOffice === "No" }),
     ] },
     { id: "owners", title: (ownerConfig(A)).label, type: "owners" },
     docStep([], {
@@ -540,13 +553,52 @@ export function newcoBusinessSteps(A) {
           if (isMinor(o.dob)) items.push(`Nominee ID Proof – ${label}`);
           return { title: label, items };
         });
-        groups.push({ title: "Company Documents", items: ["Registered Office Address Proof", "NOC, if applicable", "Other Supporting Document"] });
+        // A virtual office is arranged by Bizpole, so there's no office of the
+        // applicant's own to prove — skip the Company Documents section then.
+        const virtualOffice = A.isRegisteredAddress === "No" && A.wantsVirtualOffice === "Yes";
+        if (!virtualOffice) groups.push({ title: "Company Documents", items: ["Registered Office Address Proof", "NOC, if applicable", "Other Supporting Document"] });
         return groups;
       },
     }),
     addonStep(),
   ];
   return s;
+}
+
+/* ---------------------------------------------------------------------------
+   Trademark: one application per mark. The Registry protects exactly the
+   representation filed, so each distinct word mark, each logo and each tagline
+   is its own application with its own government fee — the same words used as
+   brand/company/product name are still just one word mark. Marks live on
+   A.tm_marks (edited on the "Trademark Details" step, see FlowRunner's
+   TmMarksBody); until that step is reached, the searched name counts as the
+   one word mark.
+--------------------------------------------------------------------------- */
+export const TM_MARK_TYPES = ["Word mark", "Logo", "Tagline"];
+export const TM_LANGUAGES = ["English", "Hindi", "Regional language", "Other"];
+export function newTmMark(type = "Word mark", text = "") {
+  return { type, text, language: "", inUse: "", useSince: "", applied: "", appNo: "" };
+}
+export function tmMarks(A) {
+  return Array.isArray(A.tm_marks) && A.tm_marks.length ? A.tm_marks : [newTmMark("Word mark", A.tm_name || "")];
+}
+export function tmMarkLabel(m, i) {
+  const text = (m.text || "").trim();
+  return `${m.type}${text ? `: ${text}` : ` ${i + 1}`}`;
+}
+// Statutory fee per application per class: ₹4,500 for an individual or an
+// MSME/Startup India-registered entity, ₹9,000 for any other applicant.
+export function tmGovtFee(A) {
+  return A.tm_ownerType && A.tm_ownerType !== "Individual" && A.tm_startup !== "Yes" ? 9000 : 4500;
+}
+// Logo uploads are numbered among the logo marks only, so a word mark being
+// added/removed never renames (and orphans) an uploaded logo.
+export function tmLogoDocLabel(n) {
+  return `Logo Artwork – Logo ${n}`;
+}
+// One fee line per application (feeLines() in FlowRunner prices each).
+export function tmServiceLines(A, name, price) {
+  return tmMarks(A).map((m, i) => ({ name: `${name} – ${tmMarkLabel(m, i)}`, professionalFee: price, governmentFee: tmGovtFee(A) }));
 }
 
 export const TRADEMARK_FLOW = {
@@ -565,6 +617,7 @@ export const TRADEMARK_FLOW = {
   // owner fields that Company needs live on that step. Continue from it then
   // converts the Lead to a Deal — see FlowRunner's goNext().
   convertAtStep: "search",
+  serviceLines: (A) => tmServiceLines(A, TRADEMARK_FLOW.name, TRADEMARK_FLOW.price),
   steps: () => [
     { id: "nature", title: "Nature of Business", fields: [cardsField("tm_nature", "What is the nature of your business?", TM_NATURE, { cols: 3 })] },
     { id: "product", title: "Business / Product / Service Details", fields: [
@@ -597,23 +650,19 @@ export const TRADEMARK_FLOW = {
       // Only an individual applicant can be a minor — a Company/LLP/Partnership can't.
       ...personMinorFields("tm_owner", (A) => A.tm_ownerType === "Individual"),
     ] },
-    { id: "details", title: "Trademark Details", fields: [
-      checksField("tm_what", "What do you want to protect?", ["Brand Name", "Logo", "Product Name", "Service Name", "Company Name", "Tagline", "Other"], { cols: 3, full: true }),
-      textField("tm_tagline", "Tagline", { required: false, showIf: (A) => (A.tm_what || []).includes("Tagline") || (A.tm_what || []).includes("Brand Name") }),
-      pickField("tm_language", "Language / script", ["English", "Hindi", "Regional language", "Other"]),
-      noteField(() => ({ variant: "info", body: "Logo selected. You'll be asked to upload the logo artwork in the Documents step — a clear PNG or JPG on a white background works best." }), { showIf: (A) => (A.tm_what || []).includes("Logo"), full: true }),
-      ynField("tm_inUse", "Is the trademark already being used?", { full: true }),
-      textField("tm_useSince", "In use since (date)", { type: "date", showIf: (A) => A.tm_inUse === "Yes" }),
-      ynField("tm_applied", "Has an application been filed for this mark before?", { full: true }),
-      textField("tm_appNo", "Previous application number", { showIf: (A) => A.tm_applied === "Yes" }),
-    ] },
-    { id: "documents", title: "Documents Upload", type: "docs", dynamicItems: (A) => {
+    // One card per mark = one application each (see tmMarks above).
+    { id: "details", title: "Trademark Details", type: "tmMarks" },
+    { id: "documents", title: "Documents Upload", type: "docs", groupedItems: (A) => {
+      const marks = tmMarks(A);
+      const logos = marks.filter((m) => m.type === "Logo");
+      const groups = [];
+      if (logos.length) groups.push({ title: "Logo Artwork (one per logo application)", items: logos.map((_, i) => tmLogoDocLabel(i + 1)) });
       const base = ["PAN of Applicant", "Aadhaar / ID Proof", "Business Registration Certificate", "Signed Form TM-48 (Power of Attorney)"];
-      if ((A.tm_what || []).includes("Logo")) base.splice(1, 0, "Logo Artwork (PNG / JPG)");
-      if (A.tm_inUse === "Yes") base.push("Proof of Use (invoice, packaging, listing)");
+      if (marks.some((m) => m.inUse === "Yes")) base.push("Proof of Use (invoice, packaging, listing)");
       if (A.tm_startup === "Yes") base.push("MSME / Startup Certificate");
       base.push("Other Supporting Document");
-      return base;
+      groups.push({ title: "Applicant Documents", items: base });
+      return groups;
     } },
   ],
 };
@@ -876,6 +925,31 @@ export const FLOWS = {
 
   "ex-business": {
     name: "Business Registration", code: "BR", price: 6999, govt: 2100, kind: "Existing Company",
+    // "I'm not sure" raises a Lead for an advisor call — no Review, Packages or
+    // Payment; "Change/update" points to the Change options (see FlowRunner's
+    // directSaveMode). Every other purpose is the normal paid application.
+    directSave: (A) => (A.ex_purpose === "I'm not sure" ? "advisor" : A.ex_purpose === "Change/update my existing business" ? "redirect" : null),
+    // "Register another company" runs newco's steps, so it bills the same
+    // business-type service as newco — without it the Quote line has no
+    // ServiceID and the Quote approval page finds no pricing.
+    serviceIdFor: (A) => BUSINESS_TYPE_SERVICE_ID[A.businessType] || null,
+    // Fill the Existing Company step (and, for shared owners, the Owners step)
+    // from the signed-in customer's selected company — see FlowRunner.
+    prefillExisting: true,
+    // Saved as the Deal's first follow-up note, so the deal owner knows how the
+    // new company relates to the customer's existing one.
+    dealNoteFor: (A) => {
+      if (A.ex_purpose !== "Register another/new company" || !A.ex_brandNew) return "";
+      const lines = ["New company for an existing client (Register another company).", `Completely new business: ${A.ex_brandNew}`];
+      if (A.ex_brandNew === "No") {
+        const relation = A.ex_relation === "Other" ? A.ex_relation__other || "Other" : A.ex_relation;
+        const place = [A.ex_addr1, A.ex_addr2, A.ex_city, A.ex_district, A.ex_state, A.ex_pincode].filter(Boolean).join(", ");
+        lines.push(`Relation to existing company: ${relation || "—"}`);
+        lines.push(`Existing company: ${A.ex_name || "—"}${A.ex_regno ? ` (CIN/LLPIN ${A.ex_regno})` : ""}${A.ex_biztype ? `, ${A.ex_biztype}` : ""}`);
+        if (place) lines.push(`Existing company address: ${place}`);
+      }
+      return lines.join("\n");
+    },
     steps: (A) => {
       const purpose = A.ex_purpose;
       const s = [{ id: "purpose", title: "Your Requirement", fields: [
@@ -888,14 +962,21 @@ export const FLOWS = {
         s.push({ id: "advice", title: "Talk to an Advisor", fields: [
           noteField(() => ({ variant: "info", title: "No problem — let's figure it out together.", body: "Share a few details and a business advisor will call you within one working day with a recommendation." }), { full: true }),
           textField("ex_name", "Existing Company Name", { full: true }),
+          // Everything a Lead needs (name, mobile, email, state, language) —
+          // state + language also pick the franchisee the Lead is routed to.
           textField("ex_contact", "Contact Person"),
           textField("ex_mobile", "Mobile", { pattern: "mobile", type: "tel" }),
+          textField("ex_email", "Email", { pattern: "email", type: "email" }),
+          pickField("ex_state", "State", STATES),
+          pickField("ex_language", "Preferred Language", LEAD_LANGUAGES),
           areaField("ex_query", "What are you trying to achieve?", { full: true }),
         ] });
         return s;
       }
       if (purpose === "Register a new branch") return s.concat(FLOWS["ex-branch"].steps(A));
-      if (purpose === "Change/update my existing business") return s.concat(FLOWS["ex-change"].steps(A));
+      // Changes save straight to the company now (FLOWS["ex-change"], directSave) —
+      // send the customer to those options rather than a paid application.
+      if (purpose === "Change/update my existing business") return s.concat([{ id: "useChange", title: "Change Your Company", type: "goToChange" }]);
 
       s.push({ id: "newbiz", title: "New or Related?", fields: [
         ynField("ex_brandNew", "Is this a completely new business?", { hint: "Choose No if the new entity shares owners with, or is a subsidiary of, your existing company." }),
@@ -947,46 +1028,44 @@ export const FLOWS = {
   },
 
   "ex-change": {
-    name: "Company Change Request", code: "CHG", price: 3499, govt: 900, kind: "Existing Company",
+    // directSave: no Deal, Quote, documents or payment — FlowRunner ends this
+    // flow at Review, and Save writes straight to the customer's own company
+    // (see companyChangeSave.js). price/govt are unused here.
+    name: "Company Change Request", code: "CHG", price: 0, govt: 0, kind: "Existing Company", directSave: true,
     steps: (A) => {
       const what = A.change_what;
       const s = [
         { id: "what", title: "Change Required", fields: [
           cardsField("change_what", "What would you like to change?", ["Business Name", "Business Address", "Business Activity", "Owner / Director", "Partner", "Contact Details", "Bank Details", "Company Structure", "Registered Office", "Other"], { cols: 2, full: true }),
         ] },
-        { id: "company", title: "Existing Company", fields: [
-          textField("ex_name", "Existing Company Name", { full: true }),
-          textField("ex_regno", "Registration Number (CIN / LLPIN)"),
-          pickField("ex_biztype", "Business Type", BIZ_TYPES),
-        ] },
+        // Which of the signed-in customer's companies to change (FlowRunner's
+        // ChangeCompanyBody) — sets A.ex_company_id.
+        { id: "company", title: "Your Company", type: "changeCompany" },
       ];
       if (!what) return [s[0]];
 
-      const cur = [], nw = [];
-      if (what === "Business Name") { cur.push(textField("cur_name", "Current registered name", { full: true })); nw.push(textField("new_name1", "New preferred name 1", { full: true }), textField("new_name2", "New preferred name 2", { full: true, required: false })); }
-      else if (what === "Business Address" || what === "Registered Office") { cur.push(...addressFields("cur", "Current address")); nw.push(...addressFields("new", "New address"), cardsField("new_premises", "New premises is", ["Owned", "Rented", "Leased", "Other"], { cols: 2, full: true })); }
-      else if (what === "Business Activity") { cur.push(areaField("cur_activity", "Current activity as registered", { full: true })); nw.push(cardsField("new_activity", "New primary activity", ACTIVITIES, { cols: 3, full: true }), areaField("new_activityDesc", "Describe the new activity", { full: true })); }
+      // "Currently on record" box, filled from the company's saved details.
+      const onRecord = { type: "currentRecord", full: true };
+      const nw = [];
+      const personShown = (A) => ["Remove", "Replace", "Change role / designation"].includes(A.change_action);
+      const incomingShown = (A) => ["Add", "Replace"].includes(A.change_action);
+      if (what === "Business Name") nw.push(textField("new_name1", "New business name", { full: true }));
+      else if (what === "Business Address" || what === "Registered Office") nw.push(...addressFields("new", "New address"));
+      else if (what === "Business Activity") nw.push(cardsField("new_activity", "Primary activity", ACTIVITIES, { cols: 3, full: true }), areaField("new_activityDesc", "Describe the activity", { full: true, required: false }));
       else if (what === "Owner / Director" || what === "Partner") {
-        cur.push(textField("cur_person", "Name of existing owner/director/partner", { full: true }), textField("cur_din", "DIN / DPIN / PAN"));
         nw.push(cardsField("change_action", "What do you want to do?", ["Add", "Remove", "Replace", "Change role / designation"], { cols: 2, full: true }),
-          textField("new_person", "Name of incoming person", { full: true, showIf: (A) => ["Add", "Replace"].includes(A.change_action) }),
-          textField("new_personPan", "PAN of incoming person", { pattern: "pan", showIf: (A) => ["Add", "Replace"].includes(A.change_action) }),
-          textField("new_personEmail", "Email of incoming person", { pattern: "email", type: "email", showIf: (A) => ["Add", "Replace"].includes(A.change_action) }),
-          pickField("new_role", "Role", ["Director", "Designated Partner", "Partner", "Shareholder", "Authorized Signatory", "Other"]));
+          { k: "chg_person", type: "personPick", label: "Which person?", required: true, full: true, showIf: personShown },
+          textField("new_person", "Name of incoming person", { full: true, showIf: incomingShown }),
+          textField("new_personPan", "PAN of incoming person", { pattern: "pan", showIf: incomingShown }),
+          textField("new_personEmail", "Email of incoming person", { pattern: "email", type: "email", required: false, showIf: incomingShown }),
+          pickField("new_role", "Role", ["Director", "Designated Partner", "Partner", "Shareholder", "Authorized Signatory", "Other"], { showIf: (A) => A.change_action && A.change_action !== "Remove" }));
       }
-      else if (what === "Contact Details") { cur.push(textField("cur_email", "Current email", { pattern: "email", type: "email" }), textField("cur_mobile", "Current mobile", { pattern: "mobile", type: "tel" })); nw.push(textField("new_email", "New email", { pattern: "email", type: "email" }), textField("new_mobile", "New mobile", { pattern: "mobile", type: "tel" })); }
-      else if (what === "Bank Details") { cur.push(textField("cur_bank", "Current bank & account number", { full: true })); nw.push(textField("bank_name", "New Bank Name"), textField("bank_branch", "Branch"), textField("bank_account", "Account Number", { pattern: "digits" }), textField("bank_ifsc", "IFSC Code", { pattern: "ifsc" }), pickField("bank_type", "Account Type", ["Current", "Savings"])); }
-      else if (what === "Company Structure") { cur.push(pickField("cur_structure", "Current structure", BIZ_TYPES)); nw.push(pickField("new_structure", "Desired structure", BIZ_TYPES), areaField("new_structureReason", "Why are you converting?", { full: true })); }
-      else { cur.push(areaField("cur_other", "Describe the current position", { full: true })); nw.push(areaField("new_other", "Describe the change you need", { full: true })); }
+      else if (what === "Contact Details") nw.push(textField("new_email", "Company email", { pattern: "email", type: "email" }), textField("new_mobile", "Company mobile", { pattern: "mobile", type: "tel" }));
+      else if (what === "Bank Details") nw.push(textField("bank_holder", "Account Holder Name", { full: true }), textField("bank_name", "Bank Name"), textField("bank_branch", "Branch", { required: false }), textField("bank_account", "Account Number", { pattern: "digits" }), textField("bank_ifsc", "IFSC Code", { pattern: "ifsc" }), pickField("bank_type", "Account Type", ["Current", "Savings"]));
+      else if (what === "Company Structure") nw.push(pickField("new_structure", "Business structure", BIZ_TYPES));
+      else nw.push(areaField("new_other", "Describe the change you need", { full: true }), areaField("cur_other", "What is on record now (optional)", { full: true, required: false }));
 
-      s.push({ id: "current", title: "Current Information", fields: [noteField(() => ({ variant: "info", title: "Current information on record", body: "Enter it exactly as filed, so we can match it with the registry." }), { full: true }), ...cur] });
-      s.push({ id: "new", title: "New Information", fields: [noteField(() => ({ variant: "info", title: "New information", body: "This is what we'll apply for." }), { full: true }), ...nw] });
-      s.push({ id: "reason", title: "Reason for Change", fields: [
-        cardsField("change_reason", "Reason for the change", ["Business expansion", "Rebranding", "Statutory requirement", "Correction of error", "Owner / management change", "Other"], { cols: 2, full: true }),
-        areaField("change_notes", "Additional notes", { full: true, required: false }),
-        textField("change_effective", "Preferred effective date", { type: "date", required: false }),
-      ] });
-      s.push(docStep(["Board Resolution / Consent", "Existing Registration Certificate", "PAN of Company", "Proof of New Information", "ID Proof of Signatory", "Other Supporting Document"]));
+      s.push({ id: "new", title: what === "Other" ? "Your Request" : "New Details", fields: what === "Other" ? nw : [onRecord, ...nw] });
       return s;
     },
   },
@@ -1081,6 +1160,18 @@ export const FLOWS = {
 
   "ex-trademark": {
     name: "Trademark Service", code: "TM", price: 4999, govt: 4500, kind: "Existing Company",
+    // "New Trademark" reuses TRADEMARK_FLOW's steps, so it gets the same
+    // backend wiring: "Run Public Trademark Search" signs the applicant up
+    // (OTP) and creates the Customer + Company (see FlowRunner's TmSearchBody),
+    // and Continue from that step converts the Lead to a Deal. Without a
+    // company name here both of those silently no-op. Other needs have no
+    // "search" step, so convertAtStep never matches for them.
+    serviceIdFor: (A) => (A.ex_tm_need === "New Trademark" ? TRADEMARK_FLOW.serviceId : null),
+    companyNameFor: (A) => A.ex_name || A.tm_ownerName,
+    convertAtStep: "search",
+    // New Trademark: one fee line per mark (see tmMarks). Other needs keep
+    // the single flat line.
+    serviceLines: (A) => (A.ex_tm_need === "New Trademark" ? tmServiceLines(A, FLOWS["ex-trademark"].name, FLOWS["ex-trademark"].price) : null),
     steps: (A) => {
       const need = A.ex_tm_need;
       const s = [{ id: "need", title: "Trademark Requirement", fields: [
